@@ -12,11 +12,11 @@ return new class extends Migration {
     {
         Schema::create('Tbl_User', function (Blueprint $table) {
             $table->increments('UserId');           // Primary key
-            $table->string('UserCode')->unique();   // Unique user code
-            $table->string('UserName');
-            $table->string('Email')->unique();      // Unique email
+            $table->string('UserCode')->unique()->nullable();   // Unique user code
+            $table->string('UserName')->nullable();
+            $table->string('Email')->unique()->nullable();      // Unique email
             $table->string('PhNumber')->nullable(); // Phone number can be nullable
-            $table->string('Password');             // Store hashed password
+            $table->string('Password')->nullable();             // Store hashed password
             $table->string('ProfileImg')->nullable(); // Profile image path optional
             $table->string('CreatedBy')->nullable();
             $table->timestamp('CreatedAt')->useCurrent(); // default current timestamp

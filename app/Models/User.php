@@ -2,47 +2,35 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
 
-class User extends Authenticatable
+class User extends Model
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    // Custom table name
+    protected $table = 'Tbl_User';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    // Custom primary key
+    protected $primaryKey = 'UserId';
+
+    // PK is auto-increment integer
+    public $incrementing = true;
+    protected $keyType = 'int';
+
+    // Disable default Laravel timestamps (created_at, updated_at)
+    public $timestamps = false;
+
+    // Mass assignable fields
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'UserCode',
+        'UserName',
+        'Email',
+        'PhNumber',
+        'Password',
+        'ProfileImg',
+        'CreatedBy',
+        'CreatedAt',
+        'ModifiedBy',
+        'ModifiedAt',
+        'DeleteFlag',
     ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
 }

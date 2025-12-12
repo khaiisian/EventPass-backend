@@ -27,8 +27,8 @@ return new class extends Migration {
 
             // Foreign key constraint
             $table->foreign('UserId')->references('UserId')->on('tbl_user')
-                ->onUpdate('cascade')
-                ->onDelete('restrict'); // Prevent deletion if user has transactions
+                ->onUpdate('cascade');
+            // ->onDelete('restrict'); // Prevent deletion if user has transactions
         });
     }
 
