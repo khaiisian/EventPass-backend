@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UserCreateRequest extends FormRequest
+class VenueTypeCreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,12 +24,7 @@ class UserCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'UserName' => 'required|string|max:255',
-            'Email' => 'required|email|max:255|unique:Tbl_User,Email,' . $this->UserId . ',UserId',
-            'PhNumber' => 'nullable|string|max:20',
-            'Password' => 'required|string|min:6',
-            'ProfileImg' => 'nullable|string|max:255',
-            'DeleteFlag' => 'nullable|boolean',
+            'VenueTypeName' => 'required|string|max:255',
         ];
     }
 
