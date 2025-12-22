@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\Venue;
+use App\Traits\CodeGenerator;
 
 class VenueService
 {
+    use CodeGenerator;
     public function connection()
     {
         return new Venue;
@@ -30,12 +32,16 @@ class VenueService
 
     public function create(array $data)
     {
-        $data['VenueCode'] = $this->generateVenueCode();
+        $data['CreatedBy'] = 'admin';
+        $data['CreatedAt'] = now();
+        $data['VenueCode'] = $this->generateCode('VEN', 'VenueId', 'VenueCode', Venue::class);
         return $this->connection()->create($data);
     }
 
     public function update(array $data, $id)
     {
+        $data['ModifiedBy'] = 'admin';
+        $data['ModifiedAt'] = now();
         $venue = $this->connection()
             ->where('DeleteFlag', false)
             ->findOrFail($id);

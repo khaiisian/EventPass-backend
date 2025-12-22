@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\VenueType;
+use App\Traits\CodeGenerator;
 
 class VenueTypeService
 {
+    use CodeGenerator;
     // Get a fresh model instance
     public function connection()
     {
@@ -33,7 +35,9 @@ class VenueTypeService
     // Create a new venue type
     public function create(array $data)
     {
-        $data['VenueTypeCode'] = $this->generateVenueTypeCode();
+        $data['CreatedBy'] = 'admin';
+        $data['CreatedAt'] = now();
+        $data['VenueTypeCode'] = $this->generateCode('VENT', 'VenueTypeId', 'VenueTypeCode', VenueType::class);
         return $this->connection()->query()->create($data);
     }
 

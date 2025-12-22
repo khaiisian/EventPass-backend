@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\EventType;
+use App\Traits\CodeGenerator;
 
 class EventTypeService
 {
+    use CodeGenerator;
     public function connection()
     {
         return new EventType;
@@ -28,12 +30,18 @@ class EventTypeService
 
     public function create(array $data)
     {
-        $data['EventTypeCode'] = $this->generateEventTypeCode();
+        $data['CreatedBy'] = 'admin';
+        $data['CreatedAt'] = now();
+        $data['EventCode'] = $this->generateCode('EVT', 'EventTypeId', 'EventTypeCode', EventType::class);
         return $this->connection()->create($data);
     }
 
     public function update(array $data, $id)
     {
+
+        $data['ModifiedAt'] = now();
+        $data['ModifiedBy'] = 'admin';
+
         $eventType = $this->connection()
             ->where('DeleteFlag', false)
             ->findOrFail($id);

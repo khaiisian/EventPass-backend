@@ -6,13 +6,15 @@ use App\Http\Requests\Event\EventCreateRequest;
 use App\Http\Requests\Event\EventUpdateRequest;
 use App\Http\Resources\EventResource;
 use App\Services\EventService;
-use Exception;
 use App\Traits\HttpResponses;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class EventController extends Controller
 {
     use HttpResponses;
-    protected $_eventService;
+
+    protected EventService $_eventService;
 
     public function __construct(EventService $eventService)
     {
@@ -22,9 +24,15 @@ class EventController extends Controller
     public function index()
     {
         try {
+            Log::info('Fetching events');
+
             $list = EventResource::collection($this->_eventService->getAll());
             return $this->success('success', $list, 'Events retrieved successfully', 200);
         } catch (Exception $e) {
+            Log::error('Failed to fetch events', [
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail('fail', null, $e->getMessage(), 500);
         }
     }
@@ -33,13 +41,22 @@ class EventController extends Controller
     {
         try {
             $data = $request->validated();
-            $data['EventCode'] = $this->_eventService->generateEventCode();
-            $data['CreatedBy'] = 'admin';
-            $data['CreatedAt'] = now();
 
-            $result = EventResource::make($this->_eventService->create($data));
-            return $this->success('success', $result, 'Event created successfully.', 200);
+            Log::info('Creating event', $data);
+
+            $event = $this->_eventService->create($data);
+
+            return $this->success(
+                'success',
+                EventResource::make($event),
+                'Event created successfully.',
+                200
+            );
         } catch (Exception $e) {
+            Log::error('Event creation failed', [
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail('error', null, 'Event creation failed', 500);
         }
     }
@@ -47,9 +64,16 @@ class EventController extends Controller
     public function show($id)
     {
         try {
+            Log::info('Fetching event', ['id' => $id]);
+
             $event = EventResource::make($this->_eventService->getById($id));
             return $this->success('success', $event, 'Event retrieved successfully', 200);
         } catch (Exception $e) {
+            Log::error('Failed to fetch event', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail('fail', null, $e->getMessage(), 500);
         }
     }
@@ -57,19 +81,29 @@ class EventController extends Controller
     public function update(EventUpdateRequest $request, $id)
     {
         try {
-            $validatedData = $request->validated();
-            $validatedData['ModifiedAt'] = now();
-            $validatedData['ModifiedBy'] = 'admin';
+            $data = $request->validated();
 
-            $update = $this->_eventService->update($validatedData, $id);
-            $resEvent = EventResource::make($this->_eventService->getById($id));
+            Log::info('Updating event', [
+                'id' => $id,
+                'data' => $data
+            ]);
 
-            if ($update) {
-                return $this->success(true, $resEvent, 'Event updated successfully', 200);
-            } else {
+            $updated = $this->_eventService->update($data, $id);
+
+            if (!$updated) {
+                Log::error('Event update failed', ['id' => $id]);
                 return $this->fail(false, null, 'Update failed', 500);
             }
+
+            $event = EventResource::make($this->_eventService->getById($id));
+
+            return $this->success(true, $event, 'Event updated successfully', 200);
         } catch (Exception $e) {
+            Log::error('Exception during event update', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
@@ -77,13 +111,22 @@ class EventController extends Controller
     public function destroy($id)
     {
         try {
+            Log::info('Deleting event', ['id' => $id]);
+
             $deleted = $this->_eventService->destroy($id);
-            if ($deleted) {
-                return $this->success(true, null, 'Event deleted successfully', 200);
-            } else {
+
+            if (!$deleted) {
+                Log::error('Event delete failed', ['id' => $id]);
                 return $this->fail(false, null, 'Delete failed', 500);
             }
+
+            return $this->success(true, null, 'Event deleted successfully', 200);
         } catch (Exception $e) {
+            Log::error('Exception during event delete', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail(false, null, $e->getMessage(), 500);
         }
     }

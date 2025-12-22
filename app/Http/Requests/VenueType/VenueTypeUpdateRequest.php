@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\VenueType;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class EventTypeCreateRequest extends FormRequest
+class VenueTypeUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +24,7 @@ class EventTypeCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'EventTypeName' => 'required|string|max:255|unique:Tbl_EventType,EventTypeName',
+            'VenueTypeName' => 'required|string|max:255',
         ];
     }
 

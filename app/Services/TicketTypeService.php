@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\TicketType;
+use App\Traits\CodeGenerator;
 
 class TicketTypeService
 {
+    use CodeGenerator;
     public function connection()
     {
         return new TicketType;
@@ -28,12 +30,16 @@ class TicketTypeService
 
     public function create(array $data)
     {
-        $data['TicketTypeCode'] = $this->generateTicketTypeCode();
+        $data['CreatedBy'] = 'admin';
+        $data['CreatedAt'] = now();
+        $data['EventCode'] = $this->generateCode('TT', 'TicketTypeId', 'TicketTypeCode', TicketType::class);
         return $this->connection()->create($data);
     }
 
     public function update(array $data, $id)
     {
+        $data['ModifiedAt'] = now();
+        $data['ModifiedBy'] = 'admin';
         $ticketType = $this->connection()
             ->where('DeleteFlag', false)
             ->findOrFail($id);

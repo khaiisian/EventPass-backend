@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserCreateRequest;
-use App\Http\Requests\UserUpdateRequest;
+use App\Http\Requests\User\UserCreateRequest;
+use App\Http\Requests\User\UserUpdateRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\UserService;
-use DateTime;
 use Exception;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Traits\HttpResponses;
 
 class UserController extends Controller
 {
     use HttpResponses;
+
     protected $_userService;
 
     public function __construct(UserService $userService)
@@ -24,93 +24,84 @@ class UserController extends Controller
 
     public function index()
     {
-        //
         try {
-            $lst = UserResource::collection($this->_userService->getUsers());
+            $lst = UserResource::collection(
+                $this->_userService->getUsers()
+            );
+
             return $this->success('success', $lst, 'Users are retrieved successfully', 200);
         } catch (Exception $e) {
-            return $this->success('fail', null, $e->getMessage(), 500);
+            Log::error('User index error: ' . $e->getMessage());
+
+            return $this->success('fail', null, 'Failed to retrieve users', 500);
         }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(UserCreateRequest $request)
     {
         try {
             $data = $request->validated();
 
-            $data["UserCode"] = $this->_userService->generateUserCode();
-            $data['CreatedBy'] = 'admin';
-            $data['CreatedAt'] = now();
+            $result = UserResource::make(
+                $this->_userService->createUser($data)
+            );
 
-            $result = UserResource::make($this->_userService->createUser($data));
             return $this->success('success', $result, 'User account is created successfully.', 200);
         } catch (Exception $e) {
-            return $this->fail('error', null, 'User account creation was failed', code: 500);
+            Log::error('User store error: ' . $e->getMessage());
+
+            return $this->fail('error', null, 'User account creation failed', 500);
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
-        //
         try {
-            $user = UserResource::make($this->_userService->getUserByid($id));
+            $user = UserResource::make(
+                $this->_userService->getUserByid($id)
+            );
+
             return $this->success('success', $user, 'User is retrieved successfully', 200);
         } catch (Exception $e) {
-            return $this->success('fail', null, $e->getMessage(), 500);
+            Log::error('User show error (ID ' . $id . '): ' . $e->getMessage());
+
+            return $this->success('fail', null, 'User not found', 404);
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(User $user)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UserUpdateRequest $request, $id)
     {
-        //
-        $validateData = $request->validated();
-        $validateData['ModifiedAt'] = now();
-        $validateData['ModifiedBy'] = 'admin';
-        $update = $this->_userService->update($validateData, $id);
-        $resUser = UserResource::make($this->_userService->getUserByid($id));
-        if ($update) {
+        try {
+            $data = $request->validated();
+
+            $this->_userService->update($data, $id);
+
+            $resUser = UserResource::make(
+                $this->_userService->getUserByid($id)
+            );
+
             return $this->success(true, $resUser, 'Successfully updated', 200);
-        } else {
-            return $this->fail(false, null, 'fail', 500);
+        } catch (Exception $e) {
+            Log::error('User update error (ID ' . $id . '): ' . $e->getMessage());
+
+            return $this->fail(false, null, 'User update failed', 500);
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        //
-        $battery = $this->_userService->destroy($id);
-        if ($battery) {
-            return $this->success(true, $battery, "Successfully deleted", 200);
-        } else {
-            return $this->fail(false, null, "Delete Failed", 500);
+        try {
+            $deleted = $this->_userService->destroy($id);
+
+            if ($deleted) {
+                return $this->success(true, null, 'Successfully deleted', 200);
+            }
+
+            return $this->fail(false, null, 'Delete failed', 500);
+        } catch (Exception $e) {
+            Log::error('User delete error (ID ' . $id . '): ' . $e->getMessage());
+
+            return $this->fail(false, null, 'User delete failed', 500);
         }
     }
 }

@@ -3,9 +3,12 @@
 namespace App\Services;
 
 use App\Models\Event;
+use App\Traits\CodeGenerator;
+
 
 class EventService
 {
+    use CodeGenerator;
     public function connection()
     {
         return new Event;
@@ -28,12 +31,24 @@ class EventService
 
     public function create(array $data)
     {
-        $data['EventCode'] = $this->generateEventCode();
-        return $this->connection()->create($data);
+        $data['CreatedBy'] = 'admin';
+        $data['CreatedAt'] = now();
+        $data['EventCode'] = $this->generateCode('EV', 'EventId', 'EventCode', Event::class);
+
+        try {
+            return $this->connection()->create($data);
+        } catch (\Exception $e) {
+            // Log the actual error
+            \Log::error('Event creation failed: ' . $e->getMessage());
+            throw $e;
+        }
     }
+
 
     public function update(array $data, $id)
     {
+        $data['ModifiedAt'] = now();
+        $data['ModifiedBy'] = 'admin';
         $event = $this->connection()
             ->where('DeleteFlag', false)
             ->findOrFail($id);
@@ -55,17 +70,4 @@ class EventService
         return $event->save();
     }
 
-    public function generateEventCode()
-    {
-        $last = $this->connection()::orderBy('EventId', 'desc')->first();
-
-        if (!$last) {
-            return 'EV0001';
-        }
-
-        $lastCode = $last->EventCode;
-        $number = (int) substr($lastCode, 2);
-        $number++;
-        return 'EV' . str_pad($number, 4, '0', STR_PAD_LEFT);
-    }
 }

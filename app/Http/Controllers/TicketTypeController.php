@@ -6,15 +6,15 @@ use App\Http\Requests\TicketType\TicketTypeCreateRequest;
 use App\Http\Requests\TicketType\TicketTypeUpdateRequest;
 use App\Http\Resources\TicketTypeResource;
 use App\Services\TicketTypeService;
-use Exception;
 use App\Traits\HttpResponses;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class TicketTypeController extends Controller
 {
-
     use HttpResponses;
 
-    protected $_ticketTypeService;
+    protected TicketTypeService $_ticketTypeService;
 
     public function __construct(TicketTypeService $ticketTypeService)
     {
@@ -24,9 +24,18 @@ class TicketTypeController extends Controller
     public function index()
     {
         try {
-            $list = TicketTypeResource::collection($this->_ticketTypeService->getAll());
+            Log::info('Fetching ticket type list');
+
+            $list = TicketTypeResource::collection(
+                $this->_ticketTypeService->getAll()
+            );
+
             return $this->success('success', $list, 'Ticket types retrieved successfully', 200);
         } catch (Exception $e) {
+            Log::error('Failed to fetch ticket types', [
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail('fail', null, $e->getMessage(), 500);
         }
     }
@@ -35,13 +44,22 @@ class TicketTypeController extends Controller
     {
         try {
             $data = $request->validated();
-            $data['TicketTypeCode'] = $this->_ticketTypeService->generateTicketTypeCode();
-            $data['CreatedBy'] = 'admin';
-            $data['CreatedAt'] = now();
 
-            $result = TicketTypeResource::make($this->_ticketTypeService->create($data));
-            return $this->success('success', $result, 'Ticket type created successfully.', 200);
+            Log::info('Creating ticket type', $data);
+
+            $ticketType = $this->_ticketTypeService->create($data);
+
+            return $this->success(
+                'success',
+                TicketTypeResource::make($ticketType),
+                'Ticket type created successfully',
+                200
+            );
         } catch (Exception $e) {
+            Log::error('Ticket type creation failed', [
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail('error', null, 'Ticket type creation failed', 500);
         }
     }
@@ -49,9 +67,19 @@ class TicketTypeController extends Controller
     public function show($id)
     {
         try {
-            $ticketType = TicketTypeResource::make($this->_ticketTypeService->getById($id));
+            Log::info('Fetching ticket type', ['id' => $id]);
+
+            $ticketType = TicketTypeResource::make(
+                $this->_ticketTypeService->getById($id)
+            );
+
             return $this->success('success', $ticketType, 'Ticket type retrieved successfully', 200);
         } catch (Exception $e) {
+            Log::error('Failed to fetch ticket type', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail('fail', null, $e->getMessage(), 500);
         }
     }
@@ -59,19 +87,31 @@ class TicketTypeController extends Controller
     public function update(TicketTypeUpdateRequest $request, $id)
     {
         try {
-            $validatedData = $request->validated();
-            $validatedData['ModifiedAt'] = now();
-            $validatedData['ModifiedBy'] = 'admin';
+            $data = $request->validated();
 
-            $update = $this->_ticketTypeService->update($validatedData, $id);
-            $resTicketType = TicketTypeResource::make($this->_ticketTypeService->getById($id));
+            Log::info('Updating ticket type', [
+                'id' => $id,
+                'data' => $data
+            ]);
 
-            if ($update) {
-                return $this->success(true, $resTicketType, 'Ticket type updated successfully', 200);
-            } else {
+            $updated = $this->_ticketTypeService->update($data, $id);
+
+            if (!$updated) {
+                Log::error('Ticket type update failed', ['id' => $id]);
                 return $this->fail(false, null, 'Update failed', 500);
             }
+
+            $ticketType = TicketTypeResource::make(
+                $this->_ticketTypeService->getById($id)
+            );
+
+            return $this->success(true, $ticketType, 'Ticket type updated successfully', 200);
         } catch (Exception $e) {
+            Log::error('Exception during ticket type update', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
@@ -79,13 +119,22 @@ class TicketTypeController extends Controller
     public function destroy($id)
     {
         try {
+            Log::info('Deleting ticket type', ['id' => $id]);
+
             $deleted = $this->_ticketTypeService->destroy($id);
-            if ($deleted) {
-                return $this->success(true, null, 'Ticket type deleted successfully', 200);
-            } else {
+
+            if (!$deleted) {
+                Log::error('Ticket type delete failed', ['id' => $id]);
                 return $this->fail(false, null, 'Delete failed', 500);
             }
+
+            return $this->success(true, null, 'Ticket type deleted successfully', 200);
         } catch (Exception $e) {
+            Log::error('Exception during ticket type delete', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail(false, null, $e->getMessage(), 500);
         }
     }

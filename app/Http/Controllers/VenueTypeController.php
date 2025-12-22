@@ -2,106 +2,117 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\VenueTypeCreateRequest;
-use App\Http\Requests\VenueTypeUpdateRequest;
+use App\Http\Requests\VenueType\VenueTypeCreateRequest;
+use App\Http\Requests\VenueType\VenueTypeUpdateRequest;
 use App\Http\Resources\VenueTypeResource;
-use App\Models\Tbl_VenueType;
 use App\Services\VenueTypeService;
-use Exception;
-use Illuminate\Http\Request;
 use App\Traits\HttpResponses;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class VenueTypeController extends Controller
 {
     use HttpResponses;
-    protected $_venueTypeService;
+
+    protected VenueTypeService $venueTypeService;
 
     public function __construct(VenueTypeService $venueTypeService)
     {
-        $this->_venueTypeService = $venueTypeService;
+        $this->venueTypeService = $venueTypeService;
     }
 
-    /**
-     * Display a listing of venue types.
-     */
     public function index()
     {
         try {
-            $list = VenueTypeResource::collection($this->_venueTypeService->getAll());
-            return $this->success('success', $list, 'Venue types retrieved successfully', 200);
+            $list = VenueTypeResource::collection(
+                $this->venueTypeService->getAll()
+            );
+
+            return $this->success(true, $list, 'Venue types retrieved successfully', 200);
         } catch (Exception $e) {
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            Log::error('VenueType index error: ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Failed to retrieve venue types', 500);
         }
     }
 
-    /**
-     * Store a newly created venue type.
-     */
     public function store(VenueTypeCreateRequest $request)
     {
         try {
-            $data = $request->validated();
-            $data["VenueTypeCode"] = $this->_venueTypeService->generateVenueTypeCode();
-            $data['CreatedBy'] = 'admin';
-            $data['CreatedAt'] = now();
+            $venueType = $this->venueTypeService->create(
+                $request->validated()
+            );
 
-            $result = VenueTypeResource::make($this->_venueTypeService->create($data));
-            return $this->success('success', $result, 'Venue type created successfully.', 200);
+            return $this->success(
+                true,
+                VenueTypeResource::make($venueType),
+                'Venue type created successfully',
+                200
+            );
         } catch (Exception $e) {
-            return $this->fail('error', null, 'Venue type creation failed', 500);
+            Log::error('VenueType store error: ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Venue type creation failed', 500);
         }
     }
 
-    /**
-     * Display the specified venue type.
-     */
     public function show($id)
     {
         try {
-            $venueType = VenueTypeResource::make($this->_venueTypeService->getById($id));
-            return $this->success('success', $venueType, 'Venue type retrieved successfully', 200);
+            $venueType = $this->venueTypeService->getById($id);
+
+            return $this->success(
+                true,
+                VenueTypeResource::make($venueType),
+                'Venue type retrieved successfully',
+                200
+            );
         } catch (Exception $e) {
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            Log::error('VenueType show error: ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Venue type not found', 404);
         }
     }
 
-    /**
-     * Update the specified venue type.
-     */
     public function update(VenueTypeUpdateRequest $request, $id)
     {
         try {
-            $validatedData = $request->validated();
-            $validatedData['ModifiedAt'] = now();
-            $validatedData['ModifiedBy'] = 'admin';
+            $data = $request->validated();
+            $data['ModifiedAt'] = now();
+            $data['ModifiedBy'] = 'admin';
 
-            $update = $this->_venueTypeService->update($validatedData, $id);
-            $resVenueType = VenueTypeResource::make($this->_venueTypeService->getById($id));
+            $this->venueTypeService->update($data, $id);
 
-            if ($update) {
-                return $this->success(true, $resVenueType, 'Venue type updated successfully', 200);
-            } else {
-                return $this->fail(false, null, 'Update failed', 500);
-            }
+            $venueType = $this->venueTypeService->getById($id);
+
+            return $this->success(
+                true,
+                VenueTypeResource::make($venueType),
+                'Venue type updated successfully',
+                200
+            );
         } catch (Exception $e) {
-            return $this->fail(false, null, $e->getMessage(), 500);
+            Log::error('VenueType update error: ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Venue type update failed', 500);
         }
     }
 
-    /**
-     * Remove the specified venue type (soft delete).
-     */
     public function destroy($id)
     {
         try {
-            $deleted = $this->_venueTypeService->destroy($id);
-            if ($deleted) {
-                return $this->success(true, null, 'Venue type deleted successfully', 200);
-            } else {
-                return $this->fail(false, null, 'Delete failed', 500);
-            }
+            $this->venueTypeService->destroy($id);
+
+            return $this->success(
+                true,
+                null,
+                'Venue type deleted successfully',
+                200
+            );
         } catch (Exception $e) {
-            return $this->fail(false, null, $e->getMessage(), 500);
+            Log::error('VenueType delete error: ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Venue type delete failed', 500);
         }
     }
 }

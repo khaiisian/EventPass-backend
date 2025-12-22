@@ -2,85 +2,116 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\VenueCreateRequest;
-use App\Http\Requests\VenueUpdateRequest;
+use App\Http\Requests\Venue\VenueCreateRequest;
+use App\Http\Requests\Venue\VenueUpdateRequest;
 use App\Http\Resources\VenueResource;
 use App\Services\VenueService;
-use Exception;
 use App\Traits\HttpResponses;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class VenueController extends Controller
 {
     use HttpResponses;
 
-    protected $_venueService;
+    protected VenueService $venueService;
 
     public function __construct(VenueService $venueService)
     {
-        $this->_venueService = $venueService;
+        $this->venueService = $venueService;
     }
 
     public function index()
     {
         try {
-            $venues = VenueResource::collection($this->_venueService->getAll());
-            return $this->success('success', $venues, 'Venues retrieved successfully', 200);
+            $venues = VenueResource::collection(
+                $this->venueService->getAll()
+            );
+
+            return $this->success(true, $venues, 'Venues retrieved successfully', 200);
         } catch (Exception $e) {
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            Log::error('Venue index error: ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Failed to retrieve venues', 500);
         }
     }
 
     public function store(VenueCreateRequest $request)
     {
         try {
-            $data = $request->validated();
-            $data['CreatedBy'] = 'admin';
-            $data['CreatedAt'] = now();
+            $venue = $this->venueService->create(
+                $request->validated()
+            );
 
-            $venue = VenueResource::make($this->_venueService->create($data));
-            return $this->success('success', $venue, 'Venue created successfully', 200);
+            return $this->success(
+                true,
+                VenueResource::make($venue),
+                'Venue created successfully',
+                200
+            );
         } catch (Exception $e) {
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            Log::error('Venue store error: ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Venue creation failed', 500);
         }
     }
 
     public function show($id)
     {
         try {
-            $venue = VenueResource::make($this->_venueService->getById($id));
-            return $this->success('success', $venue, 'Venue retrieved successfully', 200);
+            $venue = $this->venueService->getById($id);
+
+            return $this->success(
+                true,
+                VenueResource::make($venue),
+                'Venue retrieved successfully',
+                200
+            );
         } catch (Exception $e) {
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            Log::error('Venue show error (ID ' . $id . '): ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Venue not found', 404);
         }
     }
 
     public function update(VenueUpdateRequest $request, $id)
     {
         try {
-            $data = $request->validated();
-            $data['ModifiedBy'] = 'admin';
-            $data['ModifiedAt'] = now();
+            $this->venueService->update(
+                $request->validated(),
+                $id
+            );
 
-            $this->_venueService->update($data, $id);
-            $venue = VenueResource::make($this->_venueService->getById($id));
+            $venue = $this->venueService->getById($id);
 
-            return $this->success(true, $venue, 'Venue updated successfully', 200);
+            return $this->success(
+                true,
+                VenueResource::make($venue),
+                'Venue updated successfully',
+                200
+            );
         } catch (Exception $e) {
-            return $this->fail(false, null, $e->getMessage(), 500);
+            Log::error('Venue update error (ID ' . $id . '): ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Venue update failed', 500);
         }
     }
 
     public function destroy($id)
     {
         try {
-            $deleted = $this->_venueService->destroy($id);
-            if ($deleted) {
-                return $this->success(true, null, 'Venue deleted successfully', 200);
-            } else {
-                return $this->fail(false, null, 'Delete failed', 500);
-            }
+            $this->venueService->destroy($id);
+
+            return $this->success(
+                true,
+                null,
+                'Venue deleted successfully',
+                200
+            );
         } catch (Exception $e) {
-            return $this->fail(false, null, $e->getMessage(), 500);
+            Log::error('Venue delete error (ID ' . $id . '): ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Venue delete failed', 500);
         }
     }
 }

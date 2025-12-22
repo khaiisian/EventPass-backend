@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\VenueType;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class VenueTypeUpdateRequest extends FormRequest
+class VenueTypeCreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -2,9 +2,13 @@
 namespace App\Services;
 
 use App\Models\User;
+use Hash;
+use App\Traits\CodeGenerator;
+
 
 class UserService
 {
+    use CodeGenerator;
     public function connection()
     {
         return new User;
@@ -28,11 +32,17 @@ class UserService
 
     public function createUser(array $data)
     {
-        return $this->connection()->query()->store($data);
+        $data["Password"] = Hash::make($data["Password"]);
+        $data['EventCode'] = $this->generateCode('USR', 'UserId', 'UserCode', User::class);
+        $data['CreatedBy'] = 'admin';
+        $data['CreatedAt'] = now();
+        return $this->connection()->query()->create($data);
     }
 
     public function update(array $data, $id)
     {
+        $data['ModifiedAt'] = now();
+        $data['ModifiedBy'] = 'admin';
         $user = $this->connection()
             ->where('DeleteFlag', false)
             ->findOrFail($id);
@@ -73,18 +83,18 @@ class UserService
         return $user->save();
     }
 
-    public function generateUserCode()
-    {
-        $lastUser = $this->connection()::orderBy('UserId', 'desc')->first();
+    // public function generateUserCode()
+    // {
+    //     $lastUser = $this->connection()::orderBy('UserId', 'desc')->first();
 
-        if (!$lastUser) {
-            return 'USR0001';
-        }
+    //     if (!$lastUser) {
+    //         return 'USR0001';
+    //     }
 
-        $lastCode = $lastUser->UserCode;           // e.g., USR0012
-        $number = (int) substr($lastCode, 3);      // 12
-        $number++;
-        return 'USR' . str_pad($number, 4, '0', STR_PAD_LEFT);
-    }
+    //     $lastCode = $lastUser->UserCode;           // e.g., USR0012
+    //     $number = (int) substr($lastCode, 3);      // 12
+    //     $number++;
+    //     return 'USR' . str_pad($number, 4, '0', STR_PAD_LEFT);
+    // }
 }
 ?>

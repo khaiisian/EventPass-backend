@@ -2,24 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Model
+class User extends Authenticatable implements JWTSubject
 {
-    // Custom table name
     protected $table = 'Tbl_User';
-
-    // Custom primary key
     protected $primaryKey = 'UserId';
-
-    // PK is auto-increment integer
-    public $incrementing = true;
-    protected $keyType = 'int';
-
-    // Disable default Laravel timestamps (created_at, updated_at)
     public $timestamps = false;
 
-    // Mass assignable fields
     protected $fillable = [
         'UserCode',
         'UserName',
@@ -33,4 +24,28 @@ class User extends Model
         'ModifiedAt',
         'DeleteFlag',
     ];
+
+    protected $hidden = ['Password'];
+
+    protected $casts = [
+        'DeleteFlag' => 'boolean',
+        'CreatedAt' => 'datetime',
+        'ModifiedAt' => 'datetime',
+    ];
+
+    // Map JWTAuth attempt 'password' field to your 'Password' column
+    public function getAuthPassword()
+    {
+        return $this->Password;
+    }
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 }

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UserUpdateRequest extends FormRequest
+class UserCreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,12 +23,11 @@ class UserUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->route('id');
         return [
-            'UserName' => 'nullable|string|max:255',
-            'Email' => 'nullable|email|max:255|unique:Tbl_User,Email,' . $id . ',UserId',
+            'UserName' => 'required|string|max:255',
+            'Email' => 'required|email|max:255|unique:Tbl_User,Email,' . $this->UserId . ',UserId',
             'PhNumber' => 'nullable|string|max:20',
-            'Password' => 'nullable|string|min:6',
+            'Password' => 'required|string|min:6',
             'ProfileImg' => 'nullable|string|max:255',
             'DeleteFlag' => 'nullable|boolean',
         ];
