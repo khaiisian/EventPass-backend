@@ -13,7 +13,7 @@ trait CodeGenerator
      */
     public function generateCode(string $prefix, string $orderBy, string $column, string $model)
     {
-        $last = $model::orderBy($orderBy, 'desc')->first(); // <-- fixed
+        $last = $model::orderBy($orderBy, 'desc')->first();
 
         if (!$last) {
             return $prefix . '0001';

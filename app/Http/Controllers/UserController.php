@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\User\PasswordUpdateRequest;
 use App\Http\Requests\User\UserCreateRequest;
 use App\Http\Requests\User\UserUpdateRequest;
 use App\Http\Resources\UserResource;
@@ -80,13 +81,33 @@ class UserController extends Controller
                 $this->_userService->getUserByid($id)
             );
 
-            return $this->success(true, $resUser, 'Successfully updated', 200);
+            return $this->success(true, $resUser, 'User Information is Successfully updated', 200);
         } catch (Exception $e) {
             Log::error('User update error (ID ' . $id . '): ' . $e->getMessage());
 
             return $this->fail(false, null, 'User update failed', 500);
         }
     }
+
+    public function UpdatePassword(PasswordUpdateRequest $request)
+    {
+        try {
+            // Get validated data from the request
+            $data = $request->validated();
+
+            // Call your service method that checks current password and updates
+            $user = $this->_userService->UpdatePassword($data);
+
+            return $this->success(true, null, 'Password is Successfully updated', 200);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
 
     public function destroy($id)
     {

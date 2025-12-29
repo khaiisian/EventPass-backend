@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -29,6 +30,7 @@ class AuthController extends Controller
                 'token' => $result['token']
             ]);
         } catch (Exception $e) {
+            Log::error('Register failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()
@@ -38,49 +40,79 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $credentials = $request->validated();
-        $token = $this->authService->login($credentials);
+        try {
+            $credentials = $request->validated();
+            $token = $this->authService->login($credentials);
 
-        if (!$token) {
+            if (!$token) {
+                Log::warning('Login failed for email: ' . $credentials['Email']);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid email or password'
+                ], 401);
+            }
+
+            return response()->json([
+                'success' => true,
+                'token' => $token
+            ]);
+        } catch (Exception $e) {
+            Log::error('Login error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials'
-            ], 401);
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'token' => $token
-        ]);
     }
 
     public function logout()
     {
-        $this->authService->logout();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Logged out successfully'
-        ]);
+        try {
+            $this->authService->logout();
+            return response()->json([
+                'success' => true,
+                'message' => 'Logged out successfully'
+            ]);
+        } catch (Exception $e) {
+            Log::error('Logout failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function me()
     {
-        $user = $this->authService->me();
-
-        return response()->json([
-            'success' => true,
-            'user' => $user
-        ]);
+        try {
+            $user = $this->authService->me();
+            return response()->json([
+                'success' => true,
+                'user' => $user
+            ]);
+        } catch (Exception $e) {
+            Log::error('Fetching user info failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function refresh()
     {
-        $token = $this->authService->refresh();
-
-        return response()->json([
-            'success' => true,
-            'token' => $token
-        ]);
+        try {
+            $token = $this->authService->refresh();
+            return response()->json([
+                'success' => true,
+                'token' => $token
+            ]);
+        } catch (Exception $e) {
+            Log::error('Token refresh failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -33,7 +33,7 @@ class UserService
     public function createUser(array $data)
     {
         $data["Password"] = Hash::make($data["Password"]);
-        $data['EventCode'] = $this->generateCode('USR', 'UserId', 'UserCode', User::class);
+        $data['UserCode'] = $this->generateCode('USR', 'UserId', 'UserCode', User::class);
         $data['CreatedBy'] = 'admin';
         $data['CreatedAt'] = now();
         return $this->connection()->query()->create($data);
@@ -57,10 +57,40 @@ class UserService
         //     $data['image'] = $image_path;
         // }
 
-        $user->update($data);
+        $filteredData = collect($data)
+            ->filter(fn($value) => $value !== null && $value !== '')
+            ->toArray();
+
+        $user->update($filteredData);
+
         return $user;
     }
 
+    public function UpdatePassword(array $data)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            throw new \Exception('User not found');
+        }
+
+        // Check if old password matches
+        if (!Hash::check($data["CurrentPassword"], $user->getAuthPassword())) {
+            throw new \Exception('Current password is incorrect');
+        }
+
+        // Update with new hashed password
+        $user->Password = Hash::make($data["Password"]);
+        $user->ModifiedBy = $user->UserCode;
+        $user->ModifiedAt = now();
+
+        try {
+            $user->save();
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+        }
+
+        return $user;
+    }
 
     public function destroy($id)
     {
