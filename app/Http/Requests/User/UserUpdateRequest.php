@@ -28,7 +28,7 @@ class UserUpdateRequest extends FormRequest
             'UserName' => 'nullable|string|max:255',
             'Email' => 'nullable|email|max:255|unique:Tbl_User,Email,' . $id . ',UserId',
             'PhNumber' => 'nullable|string|max:20',
-            'ProfileImg' => 'nullable|string|max:255',
+            'ProfileImg' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ];
     }
 

@@ -31,13 +31,14 @@ Route::middleware('auth:api')->group(function () {
     // Users
     Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index']);
-        Route::get('/{id}', [UserController::class, 'show']);
         Route::post('/', [UserController::class, 'store']);
 
-        // Specific routes before parameterized routes
         Route::put('/updatePassword', [UserController::class, 'UpdatePassword']);
 
-        // Parameterized routes last
+        // ✅ STATIC ROUTE FIRST
+        Route::delete('/me', [UserController::class, 'destroyMe']);
+
+        Route::get('/{id}', [UserController::class, 'show']);
         Route::put('/{id}', [UserController::class, 'update']);
         Route::delete('/{id}', [UserController::class, 'destroy']);
     });

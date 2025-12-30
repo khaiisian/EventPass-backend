@@ -86,15 +86,30 @@ class AuthController extends Controller
     {
         try {
             $user = $this->authService->me();
+
+            // Check if user exists and is not deleted
+            if (!$user || $user->DeleteFlag) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found'
+                ], 404);
+            }
+
+            // If user has a profile image, prepend full URL
+            if ($user->ProfileImg) {
+                $user->ProfileImg = asset('storage/' . $user->ProfileImg);
+            }
+
             return response()->json([
                 'success' => true,
                 'user' => $user
             ]);
+
         } catch (Exception $e) {
             Log::error('Fetching user info failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Failed to fetch user info'
             ], 500);
         }
     }

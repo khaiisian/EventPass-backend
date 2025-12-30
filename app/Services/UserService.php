@@ -1,130 +1,129 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\User;
-use Hash;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use App\Traits\CodeGenerator;
-
+use Exception;
 
 class UserService
 {
     use CodeGenerator;
-    public function connection()
+
+    protected function model()
     {
-        return new User;
+        return new User();
     }
 
     public function getUsers()
     {
-        return $this->connection()
-            ->query()
+        return $this->model()
             ->where('DeleteFlag', false)
             ->get();
     }
 
-    public function getUserByid($id)
+    public function getUserById($id)
     {
-        return $this->connection()
+        return $this->model()
             ->where('UserId', $id)
-            ->where('DeleteFlag', false)
+            ->where('DeleteFlag', false) // ✅ prevent fetching deleted users
             ->firstOrFail();
     }
 
     public function createUser(array $data)
     {
-        $data["Password"] = Hash::make($data["Password"]);
+        $data['Password'] = Hash::make($data['Password']);
+
+        if (!empty($data['ProfileImg'])) {
+            $image = $data['ProfileImg'];
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $data['ProfileImg'] = $image->storeAs('images', $imageName, 'public');
+        }
+
         $data['UserCode'] = $this->generateCode('USR', 'UserId', 'UserCode', User::class);
         $data['CreatedBy'] = 'admin';
         $data['CreatedAt'] = now();
-        return $this->connection()->query()->create($data);
+        $data['DeleteFlag'] = false;
+
+        return $this->model()->create($data);
     }
 
     public function update(array $data, $id)
     {
-        $data['ModifiedAt'] = now();
+        $user = $this->model()
+            ->where('UserId', $id)
+            ->where('DeleteFlag', false) // ✅ block update if soft-deleted
+            ->firstOrFail();
+
+        if (!empty($data['ProfileImg'])) {
+            if ($user->ProfileImg) {
+                Storage::disk('public')->delete($user->ProfileImg);
+            }
+
+            $image = $data['ProfileImg'];
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $data['ProfileImg'] = $image->storeAs('images', $imageName, 'public');
+        }
+
         $data['ModifiedBy'] = 'admin';
-        $user = $this->connection()
-            ->where('DeleteFlag', false)
-            ->findOrFail($id);
-        // if (isset($data['image'])) {
-        //     $image = $data['image'];
-        //     $image_name = time() . '_' . $image->getClientOriginalName();
+        $data['ModifiedAt'] = now();
 
-        //     if ($battery->image) {
-        //         Storage::disk('public')->delete($battery->image);
-        //     }
-        //     $image_path = $image->storeAs('images', $image_name, 'public');
-        //     $data['image'] = $image_path;
-        // }
-
-        $filteredData = collect($data)
-            ->filter(fn($value) => $value !== null && $value !== '')
-            ->toArray();
-
-        $user->update($filteredData);
+        $user->update(
+            collect($data)->filter(fn($v) => $v !== null && $v !== '')->toArray()
+        );
 
         return $user;
     }
 
-    public function UpdatePassword(array $data)
+    public function updatePassword(array $data)
     {
         $user = auth()->user();
-        if (!$user) {
-            throw new \Exception('User not found');
+
+        if (!$user || $user->DeleteFlag) { // ✅ block deleted users
+            throw new Exception('Unauthorized');
         }
 
-        // Check if old password matches
-        if (!Hash::check($data["CurrentPassword"], $user->getAuthPassword())) {
-            throw new \Exception('Current password is incorrect');
+        if (!Hash::check($data['CurrentPassword'], $user->Password)) {
+            throw new Exception('Current password is incorrect');
         }
 
-        // Update with new hashed password
-        $user->Password = Hash::make($data["Password"]);
+        $user->Password = Hash::make($data['Password']);
         $user->ModifiedBy = $user->UserCode;
         $user->ModifiedAt = now();
 
-        try {
-            $user->save();
-        } catch (\Exception $e) {
-            dd($e->getMessage());
-        }
+        $user->save();
 
         return $user;
     }
 
     public function destroy($id)
     {
-        $user = $this->connection()
-            ->where('DeleteFlag', false)
-            ->findOrFail($id);
-
-        if (!$user) {
-            return false;
-        }
-
-        // if ($battery->image) {
-        //     Storage::disk('public')->delete($battery->image);
-        // }
+        $user = $this->model()
+            ->where('UserId', $id)
+            ->where('DeleteFlag', false) // ✅ prevent double delete
+            ->firstOrFail();
 
         $user->DeleteFlag = true;
+        $user->ModifiedBy = 'system';
         $user->ModifiedAt = now();
-        $user->ModifiedBy = "system";
 
-        return $user->save();
+        $user->save();
     }
 
-    // public function generateUserCode()
-    // {
-    //     $lastUser = $this->connection()::orderBy('UserId', 'desc')->first();
+    public function destroyMe()
+    {
+        $user = auth()->user();
 
-    //     if (!$lastUser) {
-    //         return 'USR0001';
-    //     }
+        if (!$user || $user->DeleteFlag) { // ✅ block deleted or unauth user
+            throw new Exception('Unauthorized');
+        }
 
-    //     $lastCode = $lastUser->UserCode;           // e.g., USR0012
-    //     $number = (int) substr($lastCode, 3);      // 12
-    //     $number++;
-    //     return 'USR' . str_pad($number, 4, '0', STR_PAD_LEFT);
-    // }
+        $user->DeleteFlag = true;
+        $user->ModifiedBy = 'system';
+        $user->ModifiedAt = now();
+
+        $user->save();
+    }
 }
-?>

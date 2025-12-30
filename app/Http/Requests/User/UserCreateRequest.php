@@ -28,8 +28,7 @@ class UserCreateRequest extends FormRequest
             'Email' => 'required|email|max:255|unique:Tbl_User,Email,' . $this->UserId . ',UserId',
             'PhNumber' => 'nullable|string|max:20',
             'Password' => 'required|string|min:6',
-            'ProfileImg' => 'nullable|string|max:255',
-            'DeleteFlag' => 'nullable|boolean',
+            'ProfileImg' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ];
     }
 

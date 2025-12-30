@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Traits\CodeGenerator;
+use Exception;
 
 class AuthService
 {
@@ -28,14 +29,22 @@ class AuthService
 
     public function login(array $credentials)
     {
-        // JWTAuth::attempt expects lowercase 'password'
-        $token = JWTAuth::attempt([
-            'email' => $credentials['Email'],
-            'password' => $credentials['Password'],
-        ]);
+        $user = User::where('Email', $credentials['Email'])
+            ->where('DeleteFlag', false) // ✅ Prevent login for deleted users
+            ->first();
 
-        return $token ?: false;
+        if (!$user) {
+            throw new Exception('Account is not found.');
+        }
+
+        // Verify password manually because JWTAuth::attempt doesn't check DeleteFlag
+        if (!Hash::check($credentials['Password'], $user->Password)) {
+            return false;
+        }
+
+        return JWTAuth::fromUser($user);
     }
+
 
     public function logout()
     {
@@ -50,6 +59,13 @@ class AuthService
 
     public function me()
     {
-        return JWTAuth::user();
+        $user = JWTAuth::user();
+
+        if (!$user || $user->DeleteFlag) {
+            return null; // or throw an exception if you prefer
+        }
+
+        return $user;
     }
+
 }

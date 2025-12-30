@@ -6,7 +6,6 @@ use App\Http\Requests\User\PasswordUpdateRequest;
 use App\Http\Requests\User\UserCreateRequest;
 use App\Http\Requests\User\UserUpdateRequest;
 use App\Http\Resources\UserResource;
-use App\Models\User;
 use App\Services\UserService;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -26,103 +25,95 @@ class UserController extends Controller
     public function index()
     {
         try {
-            $lst = UserResource::collection(
+            $users = UserResource::collection(
                 $this->_userService->getUsers()
             );
 
-            return $this->success('success', $lst, 'Users are retrieved successfully', 200);
+            return $this->success(true, $users, 'Users retrieved successfully', 200);
         } catch (Exception $e) {
             Log::error('User index error: ' . $e->getMessage());
-
-            return $this->success('fail', null, 'Failed to retrieve users', 500);
+            return $this->fail(false, null, 'Failed to retrieve users', 500);
         }
     }
 
     public function store(UserCreateRequest $request)
     {
         try {
-            $data = $request->validated();
+            $user = $this->_userService->createUser($request->validated());
 
-            $result = UserResource::make(
-                $this->_userService->createUser($data)
+            return $this->success(
+                true,
+                UserResource::make($user),
+                'User created successfully',
+                201
             );
-
-            return $this->success('success', $result, 'User account is created successfully.', 200);
         } catch (Exception $e) {
             Log::error('User store error: ' . $e->getMessage());
-
-            return $this->fail('error', null, 'User account creation failed', 500);
+            return $this->fail(false, null, 'User creation failed', 500);
         }
     }
 
     public function show($id)
     {
         try {
-            $user = UserResource::make(
-                $this->_userService->getUserByid($id)
+            $user = $this->_userService->getUserById($id);
+
+            return $this->success(
+                true,
+                UserResource::make($user),
+                'User retrieved successfully',
+                200
             );
-
-            return $this->success('success', $user, 'User is retrieved successfully', 200);
         } catch (Exception $e) {
-            Log::error('User show error (ID ' . $id . '): ' . $e->getMessage());
-
-            return $this->success('fail', null, 'User not found', 404);
+            return $this->fail(false, null, 'User not found', 404);
         }
     }
 
     public function update(UserUpdateRequest $request, $id)
     {
         try {
-            $data = $request->validated();
+            $user = $this->_userService->update($request->validated(), $id);
 
-            $this->_userService->update($data, $id);
-
-            $resUser = UserResource::make(
-                $this->_userService->getUserByid($id)
+            return $this->success(
+                true,
+                UserResource::make($user),
+                'User updated successfully',
+                200
             );
-
-            return $this->success(true, $resUser, 'User Information is Successfully updated', 200);
         } catch (Exception $e) {
-            Log::error('User update error (ID ' . $id . '): ' . $e->getMessage());
-
+            Log::error('User update error: ' . $e->getMessage());
             return $this->fail(false, null, 'User update failed', 500);
         }
     }
 
-    public function UpdatePassword(PasswordUpdateRequest $request)
+    public function updatePassword(PasswordUpdateRequest $request)
     {
         try {
-            // Get validated data from the request
-            $data = $request->validated();
+            $this->_userService->updatePassword($request->validated());
 
-            // Call your service method that checks current password and updates
-            $user = $this->_userService->UpdatePassword($data);
-
-            return $this->success(true, null, 'Password is Successfully updated', 200);
-
+            return $this->success(true, null, 'Password updated successfully', 200);
         } catch (Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+            return $this->fail(false, null, $e->getMessage(), 400);
         }
     }
-
 
     public function destroy($id)
     {
         try {
-            $deleted = $this->_userService->destroy($id);
-
-            if ($deleted) {
-                return $this->success(true, null, 'Successfully deleted', 200);
-            }
-
-            return $this->fail(false, null, 'Delete failed', 500);
+            $this->_userService->destroy($id);
+            return $this->success(true, null, 'User deleted successfully', 200);
         } catch (Exception $e) {
-            Log::error('User delete error (ID ' . $id . '): ' . $e->getMessage());
+            return $this->fail(false, null, $e->getMessage(), 404);
+        }
+    }
 
-            return $this->fail(false, null, 'User delete failed', 500);
+    public function destroyMe()
+    {
+        try {
+            $this->_userService->destroyMe();
+            return $this->success(true, null, 'Account deleted successfully', 200);
+        } catch (Exception $e) {
+            return $this->fail(false, null, $e->getMessage(), 401);
         }
     }
 }
