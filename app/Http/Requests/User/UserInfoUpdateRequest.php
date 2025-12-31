@@ -2,12 +2,11 @@
 
 namespace App\Http\Requests\User;
 
-;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UserUpdateRequest extends FormRequest
+class UserInfoUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,7 +28,6 @@ class UserUpdateRequest extends FormRequest
             'Email' => 'nullable|email|max:255',
             'PhNumber' => 'nullable|string|max:20',
             'ProfileImg' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'Role' => 'nullable|string|in:ADMIN,CUSTOMER',
         ];
     }
 

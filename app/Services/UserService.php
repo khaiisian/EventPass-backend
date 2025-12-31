@@ -12,28 +12,30 @@ class UserService
 {
     use CodeGenerator;
 
-    protected function model()
+    protected function connection(): User
     {
         return new User();
     }
 
     public function getUsers()
     {
-        return $this->model()
+        return $this->connection()
             ->where('DeleteFlag', false)
             ->get();
     }
 
     public function getUserById($id)
     {
-        return $this->model()
+        return $this->connection()
             ->where('UserId', $id)
-            ->where('DeleteFlag', false) // ✅ prevent fetching deleted users
+            ->where('DeleteFlag', false)
             ->firstOrFail();
     }
 
     public function createUser(array $data)
     {
+        $user = auth()->user();
+
         $data['Password'] = Hash::make($data['Password']);
 
         if (!empty($data['ProfileImg'])) {
@@ -43,18 +45,18 @@ class UserService
         }
 
         $data['UserCode'] = $this->generateCode('USR', 'UserId', 'UserCode', User::class);
-        $data['CreatedBy'] = 'admin';
+        $data['CreatedBy'] = $user->UserCode;
         $data['CreatedAt'] = now();
         $data['DeleteFlag'] = false;
 
-        return $this->model()->create($data);
+        return $this->connection()->create($data);
     }
 
     public function update(array $data, $id)
     {
-        $user = $this->model()
+        $user = $this->connection()
             ->where('UserId', $id)
-            ->where('DeleteFlag', false) // ✅ block update if soft-deleted
+            ->where('DeleteFlag', false)
             ->firstOrFail();
 
         if (!empty($data['ProfileImg'])) {
@@ -67,8 +69,41 @@ class UserService
             $data['ProfileImg'] = $image->storeAs('images', $imageName, 'public');
         }
 
-        $data['ModifiedBy'] = 'admin';
+        $data['ModifiedBy'] = auth()->user()?->UserCode ?? 'admin';
         $data['ModifiedAt'] = now();
+
+        unset($data['Password']);
+
+        $user->update(
+            collect($data)->filter(fn($v) => $v !== null && $v !== '')->toArray()
+        );
+
+        return $user;
+    }
+
+
+    public function infoUpdate(array $data)
+    {
+        $user = auth()->user();
+
+        if (!$user || $user->DeleteFlag) {
+            throw new Exception('User Not Found.');
+        }
+
+        if (!empty($data['ProfileImg'])) {
+            if ($user->ProfileImg) {
+                Storage::disk('public')->delete($user->ProfileImg);
+            }
+
+            $image = $data['ProfileImg'];
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $data['ProfileImg'] = $image->storeAs('images', $imageName, 'public');
+        }
+
+        $data['ModifiedBy'] = $user->UserCode;
+        $data['ModifiedAt'] = now();
+
+        unset($data['Role']);
 
         $user->update(
             collect($data)->filter(fn($v) => $v !== null && $v !== '')->toArray()
@@ -81,8 +116,8 @@ class UserService
     {
         $user = auth()->user();
 
-        if (!$user || $user->DeleteFlag) { // ✅ block deleted users
-            throw new Exception('Unauthorized');
+        if (!$user || $user->DeleteFlag) {
+            throw new Exception('User not found');
         }
 
         if (!Hash::check($data['CurrentPassword'], $user->Password)) {
@@ -100,13 +135,13 @@ class UserService
 
     public function destroy($id)
     {
-        $user = $this->model()
+        $user = $this->connection()
             ->where('UserId', $id)
-            ->where('DeleteFlag', false) // ✅ prevent double delete
+            ->where('DeleteFlag', false)
             ->firstOrFail();
 
         $user->DeleteFlag = true;
-        $user->ModifiedBy = 'system';
+        $user->ModifiedBy = $user->UserCode;
         $user->ModifiedAt = now();
 
         $user->save();
@@ -116,12 +151,12 @@ class UserService
     {
         $user = auth()->user();
 
-        if (!$user || $user->DeleteFlag) { // ✅ block deleted or unauth user
+        if (!$user || $user->DeleteFlag) {
             throw new Exception('Unauthorized');
         }
 
         $user->DeleteFlag = true;
-        $user->ModifiedBy = 'system';
+        $user->ModifiedBy = $user->UserCode;
         $user->ModifiedAt = now();
 
         $user->save();

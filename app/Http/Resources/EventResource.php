@@ -46,9 +46,9 @@ class EventResource extends JsonResource
 
             'DeleteFlag' => (bool) $this->DeleteFlag,
 
-            // Optional relations (also same naming)
             'EventType' => $this->whenLoaded('eventType'),
             'Venue' => $this->whenLoaded('venue'),
+            'Organizer' => $this->whenLoaded('organizer')
         ];
     }
 }

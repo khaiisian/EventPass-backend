@@ -20,6 +20,8 @@ class EventCreateRequest extends FormRequest
             'VenueId' => 'required|integer|exists:Tbl_Venue,VenueId',
             'EventName' => 'required|string|max:255',
 
+            'OrganizerId' => 'nullable|integer|exists:Tbl_EventOrganizer,OrganizerId',
+
             'StartDate' => 'nullable|date',
             'EndDate' => 'nullable|date|after_or_equal:StartDate',
 

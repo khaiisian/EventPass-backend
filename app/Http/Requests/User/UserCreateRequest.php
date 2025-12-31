@@ -27,17 +27,22 @@ class UserCreateRequest extends FormRequest
             'UserName' => 'required|string|max:255',
             'Email' => 'required|email|max:255|unique:Tbl_User,Email,' . $this->UserId . ',UserId',
             'PhNumber' => 'nullable|string|max:20',
-            'Password' => 'required|string|min:6',
+            'Password' => 'required|string|min:6|confirmed',
             'ProfileImg' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'Role' => 'required|string|in:ADMIN,CUSTOMER',
         ];
     }
 
-    public function failedValidation(Validator $validator)
+    protected function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(response()->json([
-            'success' => false,
-            'message' => 'Validation errors',
-            'data' => $validator->errors()
-        ]));
+        $messages = implode(' ', $validator->errors()->all());
+
+        throw new HttpResponseException(
+            response()->json([
+                'status' => false,
+                'message' => $messages,
+                'data' => null
+            ], 422)
+        );
     }
 }

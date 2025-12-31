@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\User\PasswordUpdateRequest;
 use App\Http\Requests\User\UserCreateRequest;
+use App\Http\Requests\User\UserInfoUpdateRequest;
 use App\Http\Requests\User\UserUpdateRequest;
 use App\Http\Resources\UserResource;
 use App\Services\UserService;
@@ -73,6 +74,23 @@ class UserController extends Controller
     {
         try {
             $user = $this->_userService->update($request->validated(), $id);
+
+            return $this->success(
+                true,
+                UserResource::make($user),
+                'User data updated successfully',
+                200
+            );
+        } catch (Exception $e) {
+            Log::error('Admin user update error: ' . $e->getMessage());
+            return $this->fail(false, null, $e->getMessage(), 500);
+        }
+    }
+
+    public function infoUpdate(UserInfoUpdateRequest $request)
+    {
+        try {
+            $user = $this->_userService->infoUpdate($request->validated());
 
             return $this->success(
                 true,

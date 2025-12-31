@@ -18,6 +18,7 @@ class User extends Authenticatable implements JWTSubject
         'PhNumber',
         'Password',
         'ProfileImg',
+        'Role',          // <-- Use the exact column name from migration
         'CreatedBy',
         'CreatedAt',
         'ModifiedBy',
@@ -31,6 +32,7 @@ class User extends Authenticatable implements JWTSubject
         'DeleteFlag' => 'boolean',
         'CreatedAt' => 'datetime',
         'ModifiedAt' => 'datetime',
+        'Role' => 'string',  // <-- match the column name
     ];
 
     // Map JWTAuth attempt 'password' field to your 'Password' column

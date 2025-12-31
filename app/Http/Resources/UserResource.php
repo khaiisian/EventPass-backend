@@ -16,6 +16,7 @@ class UserResource extends JsonResource
             'Email' => $this->Email,
             'PhNumber' => $this->PhNumber,
             'ProfileImg' => $this->ProfileImg ? asset('storage/' . $this->ProfileImg) : null,
+            'Role' => $this->Role, // <-- include role
             'CreatedBy' => $this->CreatedBy,
             'CreatedAt' => $this->CreatedAt?->toDateTimeString(),
             'ModifiedBy' => $this->ModifiedBy,

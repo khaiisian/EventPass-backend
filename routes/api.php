@@ -9,19 +9,18 @@ use App\Http\Controllers\{
     VenueController,
     EventController,
     TicketTypeController,
-    TransactionController
+    TransactionController,
+    OrganizerController
 };
 
-// Public Auth routes
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
 });
 
-// Authenticated routes
 Route::middleware('auth:api')->group(function () {
 
-    // Auth actions
+    // Auth
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('me', [AuthController::class, 'me']);
@@ -32,18 +31,14 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index']);
         Route::post('/', [UserController::class, 'store']);
-
         Route::put('/updatePassword', [UserController::class, 'UpdatePassword']);
-
-        // ✅ STATIC ROUTE FIRST
         Route::delete('/me', [UserController::class, 'destroyMe']);
-
         Route::get('/{id}', [UserController::class, 'show']);
+        Route::put('/', [UserController::class, 'infoUpdate']);
         Route::put('/{id}', [UserController::class, 'update']);
         Route::delete('/{id}', [UserController::class, 'destroy']);
     });
 
-    // Venue Types
     Route::prefix('venuetypes')->group(function () {
         Route::get('/', [VenueTypeController::class, 'index']);
         Route::post('/', [VenueTypeController::class, 'store']);
@@ -52,7 +47,6 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{id}', [VenueTypeController::class, 'destroy']);
     });
 
-    // Event Types
     Route::prefix('eventtypes')->group(function () {
         Route::get('/', [EventTypeController::class, 'index']);
         Route::post('/', [EventTypeController::class, 'store']);
@@ -61,7 +55,6 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{id}', [EventTypeController::class, 'destroy']);
     });
 
-    // Venues
     Route::prefix('venues')->group(function () {
         Route::get('/', [VenueController::class, 'index']);
         Route::post('/', [VenueController::class, 'store']);
@@ -70,7 +63,6 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{id}', [VenueController::class, 'destroy']);
     });
 
-    // Events
     Route::prefix('events')->group(function () {
         Route::get('/', [EventController::class, 'index']);
         Route::post('/', [EventController::class, 'store']);
@@ -79,7 +71,14 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{id}', [EventController::class, 'destroy']);
     });
 
-    // Ticket Types
+    Route::prefix('organizers')->group(function () {
+        Route::get('/', [OrganizerController::class, 'index']);
+        Route::post('/', [OrganizerController::class, 'store']);
+        Route::get('/{id}', [OrganizerController::class, 'show']);
+        Route::put('/{id}', [OrganizerController::class, 'update']);
+        Route::delete('/{id}', [OrganizerController::class, 'destroy']);
+    });
+
     Route::prefix('tickettypes')->group(function () {
         Route::get('/', [TicketTypeController::class, 'index']);
         Route::post('/', [TicketTypeController::class, 'store']);
@@ -88,7 +87,6 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{id}', [TicketTypeController::class, 'destroy']);
     });
 
-    // Transactions
     Route::prefix('transactions')->group(function () {
         Route::get('/', [TransactionController::class, 'index']);
         Route::post('/', [TransactionController::class, 'store']);

@@ -16,7 +16,7 @@ class AuthService
         // Hash and map password
         $data['Password'] = Hash::make($data['Password']);
         // unset($data['Password']);
-        $data['EventCode'] = $this->generateCode('USR', 'UserId', 'UserCode', User::class);
+        $data['UserCode'] = $this->generateCode('USR', 'UserId', 'UserCode', User::class);
         $data['CreatedBy'] = 'admin';
         $data['CreatedAt'] = now();
 

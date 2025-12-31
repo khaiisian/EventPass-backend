@@ -11,19 +11,23 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('Tbl_User', function (Blueprint $table) {
-            $table->increments('UserId');           // Primary key
-            $table->string('UserCode')->unique()->nullable();   // Unique user code
+            $table->increments('UserId');
+            $table->string('UserCode')->unique()->nullable();
             $table->string('UserName')->nullable();
-            $table->string('Email')->unique()->nullable();      // Unique email
-            $table->string('PhNumber')->nullable(); // Phone number can be nullable
-            $table->string('Password')->nullable();             // Store hashed password
-            $table->string('ProfileImg')->nullable(); // Profile image path optional
+            $table->string('Email')->unique()->nullable();
+            $table->string('PhNumber')->nullable();
+            $table->string('Password')->nullable();
+            $table->string('ProfileImg')->nullable();
+
+            $table->enum('Role', ['ADMIN', 'CUSTOMER'])->default('CUSTOMER');
+
             $table->string('CreatedBy')->nullable();
-            $table->timestamp('CreatedAt')->useCurrent(); // default current timestamp
+            $table->timestamp('CreatedAt')->useCurrent();
             $table->string('ModifiedBy')->nullable();
             $table->timestamp('ModifiedAt')->nullable()->useCurrentOnUpdate();
-            $table->boolean('DeleteFlag')->default(false); // Soft delete flag
+            $table->boolean('DeleteFlag')->default(false);
         });
+
     }
 
     /**

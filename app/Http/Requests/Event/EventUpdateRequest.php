@@ -21,6 +21,8 @@ class EventUpdateRequest extends FormRequest
 
             'EventName' => 'nullable|string|max:255',
 
+            'OrganizerId' => 'nullable|integer|exists:Tbl_EventOrganizer,OrganizerId',
+
             'StartDate' => 'nullable|date',
             'EndDate' => 'nullable|date|after_or_equal:StartDate',
 

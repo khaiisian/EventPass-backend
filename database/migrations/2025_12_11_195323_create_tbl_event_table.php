@@ -11,15 +11,16 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('Tbl_Event', function (Blueprint $table) {
-            $table->increments('EventId');                   // Primary key
-            $table->string('EventCode')->unique();           // Unique event code
-            $table->unsignedInteger('EventTypeId');         // Foreign key to Tbl_EventType
-            $table->unsignedInteger('VenueId');             // Foreign key to Tbl_Venue
-            $table->string('EventName');                     // Event name
-            $table->dateTime('StartDate')->nullable();       // Start date, nullable to avoid invalid default
-            $table->dateTime('EndDate')->nullable();         // End date, nullable
-            $table->boolean('IsActive')->default(true);      // Active flag
-            $table->tinyInteger('EventStatus')->default(0);  // Status (0 = pending, 1 = confirmed, etc.)
+            $table->increments('EventId');
+            $table->string('EventCode')->unique();
+            $table->unsignedInteger('EventTypeId');
+            $table->unsignedInteger('VenueId');
+            $table->unsignedInteger('OrganizerId')->nullable();
+            $table->string('EventName');
+            $table->dateTime('StartDate')->nullable();
+            $table->dateTime('EndDate')->nullable();
+            $table->boolean('IsActive')->default(true);
+            $table->tinyInteger('EventStatus')->default(0);
             $table->integer('TotalTicketQuantity')->default(0);
             $table->integer('SoldOutTicketQuantity')->default(0);
             $table->string('CreatedBy')->nullable();
@@ -28,20 +29,22 @@ return new class extends Migration {
             $table->dateTime('ModifiedAt')->nullable()->useCurrentOnUpdate();
             $table->boolean('DeleteFlag')->default(false);
 
-            // Foreign key constraints
             $table->foreign('EventTypeId')
                 ->references('EventTypeId')->on('Tbl_EventType')
-                ->onUpdate('cascade');
-            //   ->onDelete('restrict');  // Prevent deletion if event type is in use
+                ->onUpdate('cascade')
+                ->onDelete('set null');
 
             $table->foreign('VenueId')
                 ->references('VenueId')->on('Tbl_Venue')
-                ->onUpdate('cascade');
-            //   ->onDelete('restrict');  // Prevent deletion if venue is in use
+                ->onUpdate('cascade')
+                ->onDelete('set null');
+
+            $table->foreign('OrganizerId')
+                ->references(columns: 'OrganizerId')->on('Tbl_EventOrganizer')
+                ->onUpdate('cascade')
+                ->onDelete('set null');
         });
     }
-
-
 
     /**
      * Reverse the migrations.
