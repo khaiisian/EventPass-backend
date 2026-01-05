@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class EventResource extends JsonResource
+class TopEventResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -34,7 +34,6 @@ class EventResource extends JsonResource
             'EventStatus' => $this->EventStatus,
             'TotalTicketQuantity' => $this->TotalTicketQuantity,
             'SoldOutTicketQuantity' => $this->SoldOutTicketQuantity,
-            'EventImage' => $this->EventImage ? asset(path: 'storage/' . $this->EventImage) : null,
 
             'CreatedBy' => $this->CreatedBy,
             'CreatedAt' => $this->CreatedAt

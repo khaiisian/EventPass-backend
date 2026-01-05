@@ -32,7 +32,7 @@ class OrganizerService
 
     public function create(array $data)
     {
-        $data['CreatedBy'] = 'admin';
+        $data['CreatedBy'] = auth()->user()?->UserCode ?? 'admin';
         $data['CreatedAt'] = now();
         $data['OrganizerCode'] = $this->generateCode('ORG', 'OrganizerId', 'OrganizerCode', Organizer::class);
 
@@ -47,7 +47,7 @@ class OrganizerService
     public function update(array $data, $id)
     {
         $data['ModifiedAt'] = now();
-        $data['ModifiedBy'] = 'admin';
+        $data['ModifiedBy'] = auth()->user()?->UserCode ?? 'admin';
 
         $organizer = $this->connection()
             ->where('DeleteFlag', false)

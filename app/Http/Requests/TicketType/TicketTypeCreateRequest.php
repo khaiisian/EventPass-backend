@@ -16,7 +16,6 @@ class TicketTypeCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'TicketTypeCode' => 'required|string|max:255|unique:Tbl_TicketType,TicketTypeCode',
             'EventId' => 'required|integer|exists:Tbl_Event,EventId',
             'TicketTypeName' => 'required|string|max:255',
             'Price' => 'nullable|numeric|min:0',
@@ -26,10 +25,14 @@ class TicketTypeCreateRequest extends FormRequest
 
     protected function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(response()->json([
-            'status' => false,
-            'data' => null,
-            'message' => $validator->errors()->first()
-        ], 422));
+        $messages = implode(' ', $validator->errors()->all());
+
+        throw new HttpResponseException(
+            response()->json([
+                'status' => false,
+                'message' => $messages,
+                'data' => null
+            ], 422)
+        );
     }
 }

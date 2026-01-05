@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Venue;
 use App\Traits\CodeGenerator;
+use Illuminate\Support\Facades\Storage;
+
 
 class VenueService
 {
@@ -32,19 +34,36 @@ class VenueService
 
     public function create(array $data)
     {
-        $data['CreatedBy'] = 'admin';
+        $data['CreatedBy'] = auth()->user()?->UserCode ?? 'admin';
         $data['CreatedAt'] = now();
         $data['VenueCode'] = $this->generateCode('VEN', 'VenueId', 'VenueCode', Venue::class);
+
+        if (!empty($data['VenueImage'])) {
+            $image = $data['VenueImage'];
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $data['VenueImage'] = $image->storeAs('images', $imageName, 'public');
+        }
+
         return $this->connection()->create($data);
     }
 
     public function update(array $data, $id)
     {
-        $data['ModifiedBy'] = 'admin';
+        $data['ModifiedBy'] = auth()->user()?->UserCode ?? 'admin';
         $data['ModifiedAt'] = now();
         $venue = $this->connection()
             ->where('DeleteFlag', false)
             ->findOrFail($id);
+
+        if (!empty($data['VenueImage'])) {
+            if ($venue->VenueImage) {
+                Storage::disk('public')->delete($venue->VenueImage);
+            }
+
+            $image = $data['VenueImage'];
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $data['VenueImage'] = $image->storeAs('images', $imageName, 'public');
+        }
 
         $venue->update($data);
         return $venue;

@@ -17,7 +17,7 @@ class AuthService
         $data['Password'] = Hash::make($data['Password']);
         // unset($data['Password']);
         $data['UserCode'] = $this->generateCode('USR', 'UserId', 'UserCode', User::class);
-        $data['CreatedBy'] = 'admin';
+        $data['CreatedBy'] = auth()->user()?->UserCode ?? 'admin';
         $data['CreatedAt'] = now();
 
         $user = User::create($data);

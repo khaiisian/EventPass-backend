@@ -57,7 +57,23 @@ class EventController extends Controller
                 'error' => $e->getMessage()
             ]);
 
-            return $this->fail('error', null, 'Event creation failed', 500);
+            return $this->fail('error', null, $e->getMessage(), 500);
+        }
+    }
+
+    public function getTopEvents()
+    {
+        try {
+            Log::info('Fetching top events');
+
+            $list = EventResource::collection($this->_eventService->getTopEvents());
+            return $this->success('success', $list, 'Top events retrieved successfully', 200);
+        } catch (Exception $e) {
+            Log::error('Failed to fetch top events', [
+                'error' => $e->getMessage()
+            ]);
+
+            return $this->fail('fail', null, $e->getMessage(), 500);
         }
     }
 

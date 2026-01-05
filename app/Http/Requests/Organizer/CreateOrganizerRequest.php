@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Organizer;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class CreateOrganizerRequest extends FormRequest
 {
@@ -30,5 +32,18 @@ class CreateOrganizerRequest extends FormRequest
             'DeleteFlag' => 'boolean',
         ];
 
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        $messages = implode(' ', $validator->errors()->all());
+
+        throw new HttpResponseException(
+            response()->json([
+                'status' => false,
+                'message' => $messages,
+                'data' => null
+            ], 422)
+        );
     }
 }

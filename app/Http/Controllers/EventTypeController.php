@@ -60,7 +60,7 @@ class EventTypeController extends Controller
                 'error' => $e->getMessage()
             ]);
 
-            return $this->fail('error', null, 'Event type creation failed', 500);
+            return $this->fail('error', null, $e->getMessage(), 500);
         }
     }
 

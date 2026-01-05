@@ -79,7 +79,7 @@ class VenueTypeController extends Controller
         try {
             $data = $request->validated();
             $data['ModifiedAt'] = now();
-            $data['ModifiedBy'] = 'admin';
+            $data['ModifiedBy'] = auth()->user()?->UserCode ?? 'admin';
 
             $this->venueTypeService->update($data, $id);
 

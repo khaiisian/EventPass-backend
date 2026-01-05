@@ -35,7 +35,7 @@ class VenueTypeService
     // Create a new venue type
     public function create(array $data)
     {
-        $data['CreatedBy'] = 'admin';
+        $data['CreatedBy'] = auth()->user()?->UserCode ?? 'admin';
         $data['CreatedAt'] = now();
         $data['VenueTypeCode'] = $this->generateCode('VENT', 'VenueTypeId', 'VenueTypeCode', VenueType::class);
         return $this->connection()->query()->create($data);

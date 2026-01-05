@@ -30,9 +30,9 @@ class EventTypeService
 
     public function create(array $data)
     {
-        $data['CreatedBy'] = 'admin';
+        $data['CreatedBy'] = auth()->user()?->UserCode ?? 'admin';
         $data['CreatedAt'] = now();
-        $data['EventCode'] = $this->generateCode('EVT', 'EventTypeId', 'EventTypeCode', EventType::class);
+        $data['EventTypeCode'] = $this->generateCode('EVT', 'EventTypeId', 'EventTypeCode', EventType::class);
         return $this->connection()->create($data);
     }
 
@@ -40,7 +40,7 @@ class EventTypeService
     {
 
         $data['ModifiedAt'] = now();
-        $data['ModifiedBy'] = 'admin';
+        $data['ModifiedBy'] = auth()->user()?->UserCode ?? 'admin';
 
         $eventType = $this->connection()
             ->where('DeleteFlag', false)

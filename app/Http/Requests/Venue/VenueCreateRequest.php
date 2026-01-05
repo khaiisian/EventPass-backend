@@ -20,7 +20,7 @@ class VenueCreateRequest extends FormRequest
             'VenueTypeId' => 'required|integer|exists:Tbl_VenueType,VenueTypeId',
             'Description' => 'nullable|string|max:1000',
             'Address' => 'nullable|string|max:500',
-            'VenueImage' => 'nullable|string|max:255',
+            'VenueImage' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'Capacity' => 'nullable|integer|min:0',
         ];
     }
@@ -28,10 +28,14 @@ class VenueCreateRequest extends FormRequest
     // Return JSON response on validation failure
     protected function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(response()->json([
-            'status' => false,
-            'data' => null,
-            'message' => $validator->errors()->first()
-        ], 422));
+        $messages = implode(' ', $validator->errors()->all());
+
+        throw new HttpResponseException(
+            response()->json([
+                'status' => false,
+                'message' => $messages,
+                'data' => null
+            ], 422)
+        );
     }
 }

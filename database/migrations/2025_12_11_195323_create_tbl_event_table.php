@@ -5,19 +5,17 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('Tbl_Event', function (Blueprint $table) {
             $table->increments('EventId');
             $table->string('EventCode')->unique();
-            $table->unsignedInteger('EventTypeId');
-            $table->unsignedInteger('VenueId');
+            $table->unsignedInteger('EventTypeId')->nullable();
+            $table->unsignedInteger('VenueId')->nullable();
             $table->unsignedInteger('OrganizerId')->nullable();
             $table->string('EventName');
             $table->dateTime('StartDate')->nullable();
+            $table->string('EventImage')->nullable();
             $table->dateTime('EndDate')->nullable();
             $table->boolean('IsActive')->default(true);
             $table->tinyInteger('EventStatus')->default(0);
@@ -40,15 +38,12 @@ return new class extends Migration {
                 ->onDelete('set null');
 
             $table->foreign('OrganizerId')
-                ->references(columns: 'OrganizerId')->on('Tbl_EventOrganizer')
+                ->references('OrganizerId')->on('Tbl_EventOrganizer')
                 ->onUpdate('cascade')
                 ->onDelete('set null');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('Tbl_Event');

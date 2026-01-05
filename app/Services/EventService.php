@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Models\Event;
+use App\Models\TicketType;
 use App\Traits\CodeGenerator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 
 class EventService
@@ -18,6 +21,7 @@ class EventService
     {
         return $this->connection()
             ->where('DeleteFlag', false)
+            ->with(['eventType', 'venue', 'organizer'])
             ->get();
     }
 
@@ -26,19 +30,53 @@ class EventService
         return $this->connection()
             ->where('EventId', $id)
             ->where('DeleteFlag', false)
+            ->with(['eventType', 'venue', 'organizer', 'ticketTypes'])
             ->firstOrFail();
     }
 
+    public function getTopEvents()
+    {
+        return Event::with('eventType', 'venue', 'organizer')
+            ->orderByDesc('SoldOutTicketQuantity')
+            ->take(value: 4)
+            ->get();
+    }
+
+
     public function create(array $data)
     {
-        $data['CreatedBy'] = 'admin';
-        $data['CreatedAt'] = now();
-        $data['EventCode'] = $this->generateCode('EV', 'EventId', 'EventCode', Event::class);
-
         try {
-            return $this->connection()->create($data);
+            $data['CreatedBy'] = auth()->user()?->UserCode ?? 'admin';
+            $data['CreatedAt'] = now();
+            $data['EventCode'] = $this->generateCode('EV', 'EventId', 'EventCode', Event::class);
+
+            if (!empty($data['EventImage'])) {
+                $image = $data['EventImage'];
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $data['EventImage'] = $image->storeAs('images', $imageName, 'public');
+            }
+
+            $ticketTypes = $data['TicketTypes'];
+            unset($data['TicketTypes']);
+            $event = $this->connection()->create($data);
+
+            foreach ($ticketTypes as $ticket) {
+                $ticketTypeCode = $this->generateCode('TT', 'TicketTypeId', 'TicketTypeCode', TicketType::class);
+
+                TicketType::create([
+                    'EventId' => $event->EventId,
+                    'TicketTypeCode' => $ticketTypeCode,
+                    'TicketTypeName' => $ticket['TicketTypeName'],
+                    'Price' => $ticket['Price'],
+                    'TotalQuantity' => $ticket['TotalQuantity'],
+                    'CreatedAt' => now(),
+                    'CreatedBy' => 'admin',
+                ]);
+            }
+            DB::commit();
+            return $event;
+
         } catch (\Exception $e) {
-            // Log the actual error
             \Log::error('Event creation failed: ' . $e->getMessage());
             throw $e;
         }
@@ -47,14 +85,72 @@ class EventService
 
     public function update(array $data, $id)
     {
-        $data['ModifiedAt'] = now();
-        $data['ModifiedBy'] = 'admin';
-        $event = $this->connection()
-            ->where('DeleteFlag', false)
-            ->findOrFail($id);
+        DB::beginTransaction();
 
-        $event->update($data);
-        return $event;
+        try {
+            $data['ModifiedAt'] = now();
+            $data['ModifiedBy'] = auth()->user()?->UserCode ?? 'admin';
+
+            $ticketTypes = $data['TicketTypes'] ?? [];
+            unset($data['TicketTypes']);
+
+            $event = $this->connection()
+                ->where('DeleteFlag', false)
+                ->findOrFail($id);
+
+            if (!empty($data['EventImage'])) {
+                if ($event->EventImage) {
+                    Storage::disk('public')->delete($event->EventImage);
+                }
+
+                $image = $data['EventImage'];
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $data['EventImage'] = $image->storeAs('images', $imageName, 'public');
+            }
+
+            $event->update($data);
+
+            foreach ($ticketTypes as $ticket) {
+
+                if (!empty($ticket['TicketTypeCode'])) {
+
+                    TicketType::where('TicketTypeCode', $ticket['TicketTypeCode'])
+                        ->where('EventId', $event->EventId)
+                        ->update([
+                            'TicketTypeName' => $ticket['TicketTypeName'],
+                            'Price' => $ticket['Price'],
+                            'TotalQuantity' => $ticket['TotalQuantity'],
+                            'ModifiedAt' => now(),
+                            'ModifiedBy' => auth()->user()?->UserCode ?? 'admin',
+                        ]);
+
+                } else {
+
+                    TicketType::create([
+                        'EventId' => $event->EventId,
+                        'TicketTypeCode' => $this->generateCode(
+                            'TT',
+                            'TicketTypeId',
+                            'TicketTypeCode',
+                            TicketType::class
+                        ),
+                        'TicketTypeName' => $ticket['TicketTypeName'],
+                        'Price' => $ticket['Price'],
+                        'TotalQuantity' => $ticket['TotalQuantity'],
+                        'CreatedAt' => now(),
+                        'CreatedBy' => auth()->user()?->UserCode ?? 'admin',
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return $event;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Event update failed: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function destroy($id)

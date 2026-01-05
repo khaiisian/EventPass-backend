@@ -25,19 +25,30 @@ class EventCreateRequest extends FormRequest
             'StartDate' => 'nullable|date',
             'EndDate' => 'nullable|date|after_or_equal:StartDate',
 
+            'EventImage' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+
             'IsActive' => 'nullable|boolean',
             'EventStatus' => 'nullable|integer|min:0',
 
             'TotalTicketQuantity' => 'required|integer|min:0',
+
+            'TicketTypes' => 'required|array|min:1',
+            'TicketTypes.*.TicketTypeName' => 'required|string|max:255',
+            'TicketTypes.*.Price' => 'required|numeric|min:0',
+            'TicketTypes.*.TotalQuantity' => 'required|integer|min:0',
         ];
     }
 
     protected function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(response()->json([
-            'status' => false,
-            'data' => null,
-            'message' => $validator->errors()->first()
-        ], 422));
+        $messages = implode(' ', $validator->errors()->all());
+
+        throw new HttpResponseException(
+            response()->json([
+                'status' => false,
+                'message' => $messages,
+                'data' => null
+            ], 422)
+        );
     }
 }

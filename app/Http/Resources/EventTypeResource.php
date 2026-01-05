@@ -10,14 +10,14 @@ class EventTypeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->EventTypeId,
-            'code' => $this->EventTypeCode,
-            'name' => $this->EventTypeName,
-            'created_by' => $this->CreatedBy,
-            'created_at' => $this->CreatedAt ? $this->CreatedAt->toDateTimeString() : null,
-            'modified_by' => $this->ModifiedBy,
-            'modified_at' => $this->ModifiedAt ? $this->ModifiedAt->toDateTimeString() : null,
-            'deleted' => (bool) $this->DeleteFlag,
+            'EventTypeId' => $this->EventTypeId,
+            'EventTypeCode' => $this->EventTypeCode,
+            'EventTypeName' => $this->EventTypeName,
+            'CreatedBy' => $this->CreatedBy,
+            'CreatedAt' => $this->CreatedAt ? $this->CreatedAt->toDateTimeString() : null,
+            'ModifiedBy' => $this->ModifiedBy,
+            'ModifiedAt' => $this->ModifiedAt ? $this->ModifiedAt->toDateTimeString() : null,
+            'DeleteFlag' => (bool) $this->DeleteFlag,
         ];
     }
 }

@@ -18,6 +18,7 @@ class Event extends Model
         'StartDate',
         'EndDate',
         'IsActive',
+        'EventImage',
         'EventStatus',
         'TotalTicketQuantity',
         'SoldOutTicketQuantity',
@@ -52,5 +53,26 @@ class Event extends Model
     public function venue()
     {
         return $this->belongsTo(Venue::class, 'VenueId', 'VenueId');
+    }
+    public function organizer()
+    {
+        return $this->belongsTo(Organizer::class, 'OrganizerId', 'OrganizerId');
+    }
+
+    public function ticketTypes()
+    {
+        return $this->hasMany(TicketType::class, 'EventId', 'EventId');
+    }
+
+    public function transactionTickets()
+    {
+        return $this->hasManyThrough(
+            TransactionTicket::class,
+            TicketType::class,
+            'EventId',
+            'TicketTypeId',
+            'EventId',
+            'TicketTypeId'
+        );
     }
 }

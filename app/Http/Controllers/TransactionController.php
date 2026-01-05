@@ -34,7 +34,7 @@ class TransactionController extends Controller
     {
         try {
             $data = $request->validated();
-            $data['CreatedBy'] = 'admin';
+            $data['CreatedBy'] = auth()->user()?->UserCode ?? 'admin';
             $data['CreatedAt'] = now();
 
             $result = TransactionResource::make($this->_transactionService->create($data));

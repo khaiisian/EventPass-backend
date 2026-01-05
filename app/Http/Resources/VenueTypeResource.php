@@ -15,14 +15,14 @@ class VenueTypeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->VenueTypeId,
-            'code' => $this->VenueTypeCode,
-            'name' => $this->VenueTypeName,
-            'created_by' => $this->CreatedBy,
-            'created_at' => $this->CreatedAt ? $this->CreatedAt->toDateTimeString() : null,
-            'modified_by' => $this->ModifiedBy,
-            'modified_at' => $this->ModifiedAt ? $this->ModifiedAt->toDateTimeString() : null,
-            'deleted' => (bool) $this->DeleteFlag,
+            'VenueTypeId' => $this->VenueTypeId,
+            'VenueTypeCode' => $this->VenueTypeCode,
+            'VenueTypeName' => $this->VenueTypeName,
+            'CreatedBy' => $this->CreatedBy,
+            'CreatedAt' => $this->CreatedAt ? $this->CreatedAt->toDateTimeString() : null,
+            'ModifiedBy' => $this->ModifiedBy,
+            'ModifiedAt' => $this->ModifiedAt ? $this->ModifiedAt->toDateTimeString() : null,
+            'DeleteFlag' => (bool) $this->DeleteFlag,
         ];
     }
 }

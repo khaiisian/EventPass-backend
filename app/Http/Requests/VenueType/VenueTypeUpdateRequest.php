@@ -23,17 +23,23 @@ class VenueTypeUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $venueTypeId = $this->route('id');
         return [
-            'VenueTypeName' => 'required|string|max:255',
+            'VenueTypeName' => 'nullable|string|max:255|unique:Tbl_VenueType,VenueTypeName,' . $venueTypeId . ',VenueTypeId',
+
         ];
     }
 
-    public function failedValidation(Validator $validator)
+    protected function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(response()->json([
-            'success' => false,
-            'message' => 'Validation errors',
-            'data' => $validator->errors()
-        ]));
+        $messages = implode(' ', $validator->errors()->all());
+
+        throw new HttpResponseException(
+            response()->json([
+                'status' => false,
+                'message' => $messages,
+                'data' => null
+            ], 422)
+        );
     }
 }

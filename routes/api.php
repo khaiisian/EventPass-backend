@@ -18,6 +18,9 @@ Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
 });
 
+Route::get('/topevents', action: [EventController::class, 'getTopEvents']);
+
+
 Route::middleware('auth:api')->group(function () {
 
     // Auth
@@ -64,6 +67,7 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::prefix('events')->group(function () {
+        Route::get('/topevents', action: [EventController::class, 'getTopEvents']);
         Route::get('/', [EventController::class, 'index']);
         Route::post('/', [EventController::class, 'store']);
         Route::get('/{id}', [EventController::class, 'show']);
@@ -94,5 +98,4 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/{id}', [TransactionController::class, 'update']);
         Route::delete('/{id}', [TransactionController::class, 'destroy']);
     });
-
 });

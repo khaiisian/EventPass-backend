@@ -30,7 +30,7 @@ class TicketTypeService
 
     public function create(array $data)
     {
-        $data['CreatedBy'] = 'admin';
+        $data['CreatedBy'] = auth()->user()?->UserCode ?? 'admin';
         $data['CreatedAt'] = now();
         $data['EventCode'] = $this->generateCode('TT', 'TicketTypeId', 'TicketTypeCode', TicketType::class);
         return $this->connection()->create($data);
@@ -39,7 +39,7 @@ class TicketTypeService
     public function update(array $data, $id)
     {
         $data['ModifiedAt'] = now();
-        $data['ModifiedBy'] = 'admin';
+        $data['ModifiedBy'] = auth()->user()?->UserCode ?? 'admin';
         $ticketType = $this->connection()
             ->where('DeleteFlag', false)
             ->findOrFail($id);
