@@ -60,6 +60,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::prefix('venues')->group(function () {
         Route::get('/', [VenueController::class, 'index']);
+        Route::get('/getTopVenues', [VenueController::class, 'getTopVenues']);
         Route::post('/', [VenueController::class, 'store']);
         Route::get('/{id}', [VenueController::class, 'show']);
         Route::put('/{id}', [VenueController::class, 'update']);

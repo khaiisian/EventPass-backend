@@ -9,6 +9,7 @@ use App\Services\EventService;
 use App\Traits\HttpResponses;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
@@ -21,13 +22,21 @@ class EventController extends Controller
         $this->_eventService = $eventService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
             Log::info('Fetching events');
 
-            $list = EventResource::collection($this->_eventService->getAll());
-            return $this->success('success', $list, 'Events retrieved successfully', 200);
+            $perPage = $request->get('per_page', 10);
+
+            $paginator = $this->_eventService->getAll($perPage);
+
+            return EventResource::collection($paginator)
+                ->additional([
+                    'status' => 'success',
+                    'message' => 'Events retrieved successfully'
+                ]);
+
         } catch (Exception $e) {
             Log::error('Failed to fetch events', [
                 'error' => $e->getMessage()
@@ -36,6 +45,7 @@ class EventController extends Controller
             return $this->fail('fail', null, $e->getMessage(), 500);
         }
     }
+
 
     public function store(EventCreateRequest $request)
     {

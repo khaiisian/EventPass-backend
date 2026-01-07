@@ -17,12 +17,12 @@ class EventService
         return new Event;
     }
 
-    public function getAll()
+    public function getAll($perPage = 10)
     {
         return $this->connection()
             ->where('DeleteFlag', false)
             ->with(['eventType', 'venue', 'organizer'])
-            ->get();
+            ->paginate($perPage);
     }
 
     public function getById($id)
@@ -38,10 +38,11 @@ class EventService
     {
         return Event::with('eventType', 'venue', 'organizer')
             ->orderByDesc('SoldOutTicketQuantity')
+            ->where('DeleteFlag', false)
+            ->where('EventStatus', 2)
             ->take(value: 4)
             ->get();
     }
-
 
     public function create(array $data)
     {

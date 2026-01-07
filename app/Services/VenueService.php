@@ -32,6 +32,21 @@ class VenueService
             ->firstOrFail();
     }
 
+    public function getTopVenues()
+    {
+        $topVenues = Venue::withCount([
+            'events' => function ($q) {
+                $q->where('DeleteFlag', false);
+            }
+        ])
+            ->where('DeleteFlag', false)
+            ->orderByDesc('events_count')
+            ->limit(3)
+            ->get();
+
+        return $topVenues;
+    }
+
     public function create(array $data)
     {
         $data['CreatedBy'] = auth()->user()?->UserCode ?? 'admin';

@@ -36,6 +36,21 @@ class VenueController extends Controller
         }
     }
 
+    public function getTopVenues()
+    {
+        try {
+            $topVenues = VenueResource::collection(
+                $this->venueService->getTopVenues()
+            );
+
+            return $this->success(true, $topVenues, 'Venues retrieved successfully', 200);
+        } catch (Exception $e) {
+            Log::error('Venue index error: ' . $e->getMessage());
+
+            return $this->fail(false, null, 'Failed to retrieve venues', 500);
+        }
+    }
+
     public function store(VenueCreateRequest $request)
     {
         try {

@@ -36,4 +36,9 @@ class Venue extends Model
     {
         return $this->belongsTo(VenueType::class, 'VenueTypeId', 'VenueTypeId');
     }
+
+    public function events()
+    {
+        return $this->hasMany(Event::class, 'VenueId', 'VenueId');
+    }
 }
