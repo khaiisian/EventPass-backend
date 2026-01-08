@@ -33,7 +33,7 @@ class EventController extends Controller
 
             return EventResource::collection($paginator)
                 ->additional([
-                    'status' => 'success',
+                    'status' => true,
                     'message' => 'Events retrieved successfully'
                 ]);
 
@@ -42,7 +42,7 @@ class EventController extends Controller
                 'error' => $e->getMessage()
             ]);
 
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
 
@@ -57,7 +57,7 @@ class EventController extends Controller
             $event = $this->_eventService->create($data);
 
             return $this->success(
-                'success',
+                true,
                 EventResource::make($event),
                 'Event created successfully.',
                 200
@@ -67,7 +67,7 @@ class EventController extends Controller
                 'error' => $e->getMessage()
             ]);
 
-            return $this->fail('error', null, $e->getMessage(), 500);
+            return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
 
@@ -77,13 +77,13 @@ class EventController extends Controller
             Log::info('Fetching top events');
 
             $list = EventResource::collection($this->_eventService->getTopEvents());
-            return $this->success('success', $list, 'Top events retrieved successfully', 200);
+            return $this->success(true, $list, 'Top events retrieved successfully', 200);
         } catch (Exception $e) {
             Log::error('Failed to fetch top events', [
                 'error' => $e->getMessage()
             ]);
 
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
 
@@ -93,14 +93,14 @@ class EventController extends Controller
             Log::info('Fetching event', ['id' => $id]);
 
             $event = EventResource::make($this->_eventService->getById($id));
-            return $this->success('success', $event, 'Event retrieved successfully', 200);
+            return $this->success(true, $event, 'Event retrieved successfully', 200);
         } catch (Exception $e) {
             Log::error('Failed to fetch event', [
                 'id' => $id,
                 'error' => $e->getMessage()
             ]);
 
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
 

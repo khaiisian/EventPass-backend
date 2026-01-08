@@ -9,6 +9,7 @@ use App\Services\VenueService;
 use App\Traits\HttpResponses;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class VenueController extends Controller
 {
@@ -21,14 +22,21 @@ class VenueController extends Controller
         $this->venueService = $venueService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $venues = VenueResource::collection(
-                $this->venueService->getAll()
-            );
+            Log::info('Fetching venues');
 
-            return $this->success(true, $venues, 'Venues retrieved successfully', 200);
+            $perPage = $request->get('per_page', 10);
+
+            $paginator = $this->venueService->getAll($perPage);
+
+            return VenueResource::collection($paginator)
+                ->additional([
+                    'status' => true,
+                    'message' => 'Venues retrieved successfully'
+                ]);
+
         } catch (Exception $e) {
             Log::error('Venue index error: ' . $e->getMessage());
 

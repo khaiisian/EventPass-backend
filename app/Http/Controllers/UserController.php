@@ -11,6 +11,7 @@ use App\Services\UserService;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use App\Traits\HttpResponses;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -23,16 +24,22 @@ class UserController extends Controller
         $this->_userService = $userService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $users = UserResource::collection(
-                $this->_userService->getUsers()
-            );
+            $perPage = $request->get('per_page', 10);
 
-            return $this->success(true, $users, 'Users retrieved successfully', 200);
+            $paginator = $this->_userService->getUsers($perPage);
+
+            return UserResource::collection($paginator)
+                ->additional([
+                    'status' => true,
+                    'message' => 'Users retrieved successfully'
+                ]);
+
         } catch (Exception $e) {
             Log::error('User index error: ' . $e->getMessage());
+
             return $this->fail(false, null, 'Failed to retrieve users', 500);
         }
     }

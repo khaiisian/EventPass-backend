@@ -8,6 +8,7 @@ use App\Http\Resources\EventTypeResource;
 use App\Services\EventTypeService;
 use App\Traits\HttpResponses;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class EventTypeController extends Controller
@@ -21,24 +22,35 @@ class EventTypeController extends Controller
         $this->_eventTypeService = $eventTypeService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
             Log::info('Fetching event type list');
 
-            $list = EventTypeResource::collection(
-                $this->_eventTypeService->getAll()
-            );
+            // Optional per_page query parameter
+            $perPage = $request->get('per_page', 10);
 
-            return $this->success('success', $list, 'Event types retrieved successfully', 200);
+            $paginator = $this->_eventTypeService->getAll($perPage);
+
+            return EventTypeResource::collection($paginator)
+                ->additional([
+                    'status' => true,
+                    'message' => 'Event types retrieved successfully'
+                ]);
+
         } catch (Exception $e) {
             Log::error('Failed to fetch event types', [
                 'error' => $e->getMessage()
             ]);
 
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            return response()->json([
+                'status' => false,
+                'data' => null,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
+
 
     public function store(EventTypeCreateRequest $request)
     {

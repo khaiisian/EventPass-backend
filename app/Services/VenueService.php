@@ -15,13 +15,14 @@ class VenueService
         return new Venue;
     }
 
-    public function getAll()
+    public function getAll($perPage = 10)
     {
         return $this->connection()
             ->with('venueType')
             ->where('DeleteFlag', false)
-            ->get();
+            ->paginate($perPage);
     }
+
 
     public function getById($id)
     {

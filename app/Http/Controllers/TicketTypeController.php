@@ -8,6 +8,7 @@ use App\Http\Resources\TicketTypeResource;
 use App\Services\TicketTypeService;
 use App\Traits\HttpResponses;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class TicketTypeController extends Controller
@@ -21,22 +22,34 @@ class TicketTypeController extends Controller
         $this->_ticketTypeService = $ticketTypeService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
             Log::info('Fetching ticket type list');
 
-            $list = TicketTypeResource::collection(
-                $this->_ticketTypeService->getAll()
-            );
+            // Optional: per_page query parameter, default 10
+            $perPage = $request->get('per_page', 10);
 
-            return $this->success('success', $list, 'Ticket types retrieved successfully', 200);
+            // Call the service
+            $paginator = $this->_ticketTypeService->getAll($perPage);
+
+            // Return a resource collection with additional metadata
+            return TicketTypeResource::collection($paginator)
+                ->additional([
+                    'status' => true,
+                    'message' => 'Ticket types retrieved successfully'
+                ]);
+
         } catch (Exception $e) {
             Log::error('Failed to fetch ticket types', [
                 'error' => $e->getMessage()
             ]);
 
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            return response()->json([
+                'status' => false,
+                'data' => null,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 

@@ -15,11 +15,11 @@ class OrganizerService
         return new Organizer;
     }
 
-    public function getAll()
+    public function getAll($perPage = 10)
     {
         return $this->connection()
             ->where('DeleteFlag', false)
-            ->get();
+            ->paginate($perPage);
     }
 
     public function getById($id)

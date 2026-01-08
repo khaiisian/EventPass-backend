@@ -11,21 +11,20 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('Tbl_Venue', function (Blueprint $table) {
-            $table->increments('VenueId');                // Primary key
-            $table->string('VenueCode')->unique();        // Unique code
-            $table->unsignedInteger('VenueTypeId');      // Foreign key
-            $table->string('VenueName');                  // Venue name
-            $table->string('Description')->nullable();    // Optional description
-            $table->string('Address')->nullable();        // Optional address
-            $table->string('VenueImage')->nullable();     // Image path
-            $table->integer('Capacity')->default(0);      // Capacity
+            $table->increments('VenueId');
+            $table->string('VenueCode')->unique();
+            $table->unsignedInteger('VenueTypeId');
+            $table->string('VenueName');
+            $table->string('Description')->nullable();
+            $table->string('Address')->nullable();
+            $table->string('VenueImage')->nullable();
+            $table->integer('Capacity')->default(0);
             $table->string('CreatedBy')->nullable();
             $table->timestamp('CreatedAt')->useCurrent();
             $table->string('ModifiedBy')->nullable();
             $table->timestamp('ModifiedAt')->nullable()->useCurrentOnUpdate();
-            $table->boolean('DeleteFlag')->default(false); // Soft delete flag
+            $table->boolean('DeleteFlag')->default(false);
 
-            // Foreign key constraint
             $table->foreign('VenueTypeId')->references('VenueTypeId')->on('Tbl_VenueType')
                 ->onUpdate('cascade');
             // ->onDelete('restrict');  // Prevent deletion if venue type exists

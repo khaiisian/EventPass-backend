@@ -17,11 +17,11 @@ class UserService
         return new User();
     }
 
-    public function getUsers()
+    public function getUsers($perPage = 10)
     {
         return $this->connection()
             ->where('DeleteFlag', false)
-            ->get();
+            ->paginate($perPage);
     }
 
     public function getUserById($id)

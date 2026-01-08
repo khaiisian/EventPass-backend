@@ -9,6 +9,7 @@ use App\Services\OrganizerService;
 use App\Traits\HttpResponses;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class OrganizerController extends Controller
 {
@@ -21,15 +22,27 @@ class OrganizerController extends Controller
         $this->_organizerService = $organizerService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
             Log::info('Fetching organizers');
-            $list = OrganizerResource::collection($this->_organizerService->getAll());
-            return $this->success('success', $list, 'Organizers retrieved successfully', 200);
+
+            $perPage = $request->get('per_page', 10);
+
+            $paginator = $this->_organizerService->getAll($perPage);
+
+            return OrganizerResource::collection($paginator)
+                ->additional([
+                    'status' => true,
+                    'message' => 'Organizers retrieved successfully'
+                ]);
+
         } catch (Exception $e) {
-            Log::error('Failed to fetch organizers', ['error' => $e->getMessage()]);
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            Log::error('Failed to fetch organizers', [
+                'error' => $e->getMessage()
+            ]);
+
+            return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
 
@@ -42,14 +55,14 @@ class OrganizerController extends Controller
             $organizer = $this->_organizerService->create($data);
 
             return $this->success(
-                'success',
+                true,
                 OrganizerResource::make($organizer),
                 'Organizer created successfully.',
                 200
             );
         } catch (Exception $e) {
             Log::error('Organizer creation failed', ['error' => $e->getMessage()]);
-            return $this->fail('error', null, 'Organizer creation failed', 500);
+            return $this->fail(false, null, 'Organizer creation failed', 500);
         }
     }
 
@@ -58,10 +71,10 @@ class OrganizerController extends Controller
         try {
             Log::info('Fetching organizer', ['id' => $id]);
             $organizer = OrganizerResource::make($this->_organizerService->getById($id));
-            return $this->success('success', $organizer, 'Organizer retrieved successfully', 200);
+            return $this->success(true, $organizer, 'Organizer retrieved successfully', 200);
         } catch (Exception $e) {
             Log::error('Failed to fetch organizer', ['id' => $id, 'error' => $e->getMessage()]);
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
 

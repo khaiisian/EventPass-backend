@@ -8,6 +8,8 @@ use App\Http\Resources\VenueTypeResource;
 use App\Services\VenueTypeService;
 use App\Traits\HttpResponses;
 use Exception;
+use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Log;
 
 class VenueTypeController extends Controller
@@ -21,20 +23,31 @@ class VenueTypeController extends Controller
         $this->venueTypeService = $venueTypeService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $list = VenueTypeResource::collection(
-                $this->venueTypeService->getAll()
-            );
+            // Optional per_page parameter
+            $perPage = $request->get('per_page', 10);
 
-            return $this->success(true, $list, 'Venue types retrieved successfully', 200);
+            $paginator = $this->venueTypeService->getAll($perPage);
+
+            return VenueTypeResource::collection($paginator)
+                ->additional([
+                    'status' => true,
+                    'message' => 'Venue types retrieved successfully'
+                ]);
+
         } catch (Exception $e) {
             Log::error('VenueType index error: ' . $e->getMessage());
 
-            return $this->fail(false, null, 'Failed to retrieve venue types', 500);
+            return response()->json([
+                'status' => false,
+                'data' => null,
+                'message' => 'Failed to retrieve venue types'
+            ], 500);
         }
     }
+
 
     public function store(VenueTypeCreateRequest $request)
     {

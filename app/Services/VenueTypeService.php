@@ -15,12 +15,12 @@ class VenueTypeService
     }
 
     // Get all active venue types
-    public function getAll()
+    public function getAll($perPage = 10)
     {
         return $this->connection()
             ->query()
             ->where('DeleteFlag', false)
-            ->get();
+            ->paginate($perPage);
     }
 
     // Get a single venue type by ID
