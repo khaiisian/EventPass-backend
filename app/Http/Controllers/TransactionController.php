@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Transaction\CreateTransactionRequest;
 use App\Http\Requests\TransactionCreateRequest;
 use App\Http\Requests\TransactionUpdateRequest;
 use App\Http\Resources\TransactionResource;
@@ -85,6 +86,18 @@ class TransactionController extends Controller
             }
         } catch (Exception $e) {
             return $this->fail(false, null, $e->getMessage(), 500);
+        }
+    }
+
+    public function buyTickets(CreateTransactionRequest $request)
+    {
+        try {
+            $data = $request->validated();
+
+            $transaction = TransactionResource::make($this->_transactionService->buyTickets($data));
+            return $this->success('success', $transaction, 'Tickets purchased successfully.', 200);
+        } catch (Exception $e) {
+            return $this->fail('error', $e->getMessage(), 'Ticket purchase failed', 500);
         }
     }
 }

@@ -9,7 +9,6 @@ use App\Services\VenueTypeService;
 use App\Traits\HttpResponses;
 use Exception;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Log;
 
 class VenueTypeController extends Controller

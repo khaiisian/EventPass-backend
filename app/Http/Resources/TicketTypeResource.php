@@ -21,6 +21,7 @@ class TicketTypeResource extends JsonResource
             'TicketTypeName' => $this->TicketTypeName,
             'Price' => $this->Price,
             'TotalQuantity' => $this->TotalQuantity,
+            'SoldQuantity' => $this->SoldQuantity,
             'CreatedBy' => $this->CreatedBy,
             'CreatedAt' => $this->CreatedAt ? $this->CreatedAt->toDateTimeString() : null,
             'ModifiedBy' => $this->ModifiedBy,

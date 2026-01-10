@@ -95,6 +95,7 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('transactions')->group(function () {
         Route::get('/', [TransactionController::class, 'index']);
         Route::post('/', [TransactionController::class, 'store']);
+        Route::post('/buyTickets', [TransactionController::class, 'buyTickets']);
         Route::get('/{id}', [TransactionController::class, 'show']);
         Route::put('/{id}', [TransactionController::class, 'update']);
         Route::delete('/{id}', [TransactionController::class, 'destroy']);

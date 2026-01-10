@@ -11,17 +11,18 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('Tbl_TicketType', function (Blueprint $table) {
-            $table->increments('TicketTypeId');              // Primary key
-            $table->string('TicketTypeCode')->unique();      // Unique ticket type code
-            $table->unsignedInteger('EventId');             // Foreign key to Tbl_Event
-            $table->string('TicketTypeName');               // Name of the ticket type
-            $table->decimal('Price', 10, 2)->default(0);    // Price of the ticket
-            $table->integer('TotalQuantity')->default(0);   // Total quantity of tickets
+            $table->increments('TicketTypeId');
+            $table->string('TicketTypeCode')->unique();
+            $table->unsignedInteger('EventId');
+            $table->string('TicketTypeName');
+            $table->decimal('Price', 10, 2)->default(0);
+            $table->integer('TotalQuantity')->default(0);
+            $table->integer('SoldQuantity')->default(0);
             $table->string('CreatedBy')->nullable();
             $table->timestamp('CreatedAt')->useCurrent();
             $table->string('ModifiedBy')->nullable();
             $table->timestamp('ModifiedAt')->nullable()->useCurrentOnUpdate();
-            $table->boolean('DeleteFlag')->default(false);  // Soft delete flag
+            $table->boolean('DeleteFlag')->default(false);
 
             // Foreign key constraint
             $table->foreign('EventId')->references('EventId')->on('Tbl_Event')

@@ -16,6 +16,7 @@ class TicketType extends Model
         'TicketTypeName',
         'Price',
         'TotalQuantity',
+        'SoldQuantity',
         'CreatedBy',
         'ModifiedBy',
         'DeleteFlag',
@@ -24,6 +25,7 @@ class TicketType extends Model
     protected $casts = [
         'Price' => 'decimal:2',
         'TotalQuantity' => 'integer',
+        'SoldQuantity' => 'integer',
         'DeleteFlag' => 'boolean',
         'CreatedAt' => 'datetime',
         'ModifiedAt' => 'datetime',
