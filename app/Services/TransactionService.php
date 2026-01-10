@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Traits\CodeGenerator;
 use App\Models\Event;
 use Illuminate\Support\Facades\DB;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Storage;
 use Str;
 
 class TransactionService
@@ -96,7 +98,13 @@ class TransactionService
             $transaction = $this->connection()->create($transactionData);
 
             $totalAmount = 0;
-            $totalQuantity = 0; // 👈 track total tickets in this transaction
+            $totalQuantity = 0;
+
+            // Ensure QR folder exists
+            $qrFolder = storage_path('app/public/qr-tickets');
+            if (!file_exists($qrFolder)) {
+                mkdir($qrFolder, 0755, true);
+            }
 
             foreach ($data['Tickets'] as $ticket) {
 
@@ -112,7 +120,6 @@ class TransactionService
                 }
 
                 $ticketType->increment('SoldQuantity', $ticket['Quantity']);
-
                 $totalQuantity += $ticket['Quantity'];
 
                 for ($i = 0; $i < $ticket['Quantity']; $i++) {
@@ -124,11 +131,20 @@ class TransactionService
                         TransactionTicket::class
                     );
 
+                    $qrImage = QrCode::format('png')
+                        ->size(300)
+                        ->generate($code);
+
+                    $fileName = Str::uuid();
+                    $filePath = 'qr-tickets/' . $fileName . '.png';
+
+                    Storage::disk('public')->put($filePath, $qrImage);
+
                     TransactionTicket::create([
                         'TransactionTicketCode' => $code,
                         'TicketTypeId' => $ticketType->TicketTypeId,
                         'TransactionId' => $transaction->TransactionId,
-                        'QrImage' => null,
+                        'QrImage' => $filePath,
                         'Price' => $ticketType->Price,
                         'CreatedBy' => $user->UserCode ?? 'admin',
                         'CreatedAt' => now(),
@@ -139,17 +155,18 @@ class TransactionService
                 }
             }
 
+            // Update total amount
             $transaction->update([
                 'TotalAmount' => $totalAmount
             ]);
 
+            // Update event sold quantity
             Event::where('EventId', $data['EventId'])
                 ->increment('SoldOutTicketQuantity', $totalQuantity);
 
             return $transaction;
         });
     }
-
 
     public function generateTransactionCode()
     {

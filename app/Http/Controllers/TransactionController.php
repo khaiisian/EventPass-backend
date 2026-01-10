@@ -94,10 +94,24 @@ class TransactionController extends Controller
         try {
             $data = $request->validated();
 
-            $transaction = TransactionResource::make($this->_transactionService->buyTickets($data));
+            $transaction = TransactionResource::make(
+                $this->_transactionService->buyTickets($data)
+            );
+
             return $this->success('success', $transaction, 'Tickets purchased successfully.', 200);
-        } catch (Exception $e) {
-            return $this->fail('error', $e->getMessage(), 'Ticket purchase failed', 500);
+
+        } catch (\Throwable $e) {
+            \Log::error('Ticket purchase error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return $this->fail(
+                'error',
+                $e->getMessage() ?: 'Unknown error',
+                'Ticket purchase failed',
+                500
+            );
         }
     }
+
 }
