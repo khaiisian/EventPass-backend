@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Transaction\CreateTransactionRequest;
 use App\Http\Requests\TransactionCreateRequest;
-use App\Http\Requests\TransactionUpdateRequest;
+use App\Http\Requests\Transaction\TransactionUpdateRequest;
 use App\Http\Resources\TransactionResource;
 use App\Services\TransactionService;
 use Exception;
 use App\Traits\HttpResponses;
+use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
@@ -21,15 +22,24 @@ class TransactionController extends Controller
         $this->_transactionService = $transactionService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $list = TransactionResource::collection($this->_transactionService->getAll());
-            return $this->success('success', $list, 'Transactions retrieved successfully', 200);
+            $perPage = $request->get('per_page', 10);
+
+            $paginator = $this->_transactionService->getAll($perPage);
+
+            return TransactionResource::collection($paginator)
+                ->additional([
+                    'status' => true,
+                    'message' => 'Transactions retrieved successfully'
+                ]);
+
         } catch (Exception $e) {
-            return $this->fail('fail', null, $e->getMessage(), 500);
+            return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
+
 
     public function store(TransactionCreateRequest $request)
     {

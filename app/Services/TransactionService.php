@@ -22,16 +22,21 @@ class TransactionService
         return new Transaction;
     }
 
-    public function getAll()
+    public function getAll($perPage = 10)
     {
         return $this->connection()
             ->where('DeleteFlag', false)
-            ->get();
+            ->orderByDesc('CreatedAt')
+            ->paginate($perPage);
     }
 
     public function getById($id)
     {
         return $this->connection()
+            ->with([
+                'user',
+                'transactionTickets.ticketType', // optional but usually needed
+            ])
             ->where('TransactionId', $id)
             ->where('DeleteFlag', false)
             ->firstOrFail();

@@ -34,6 +34,15 @@ class Transaction extends Model
         'DeleteFlag' => 'boolean',
     ];
 
+    public function transactionTickets()
+    {
+        return $this->hasMany(
+            TransactionTicket::class,
+            'TransactionId',
+            'TransactionId'
+        );
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'UserId', 'UserId');

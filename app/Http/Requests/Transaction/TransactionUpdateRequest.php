@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Transaction;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
@@ -15,15 +15,10 @@ class TransactionUpdateRequest extends FormRequest
 
     public function rules(): array
     {
-        $transactionId = $this->route('id');
+        $TransactionId = $this->route('id');
 
         return [
-            'UserId' => 'nullable|integer|exists:Tbl_User,UserId',
-            'Email' => 'nullable|email|max:255',
             'Status' => 'nullable|boolean',
-            'PaymentType' => 'nullable|string|max:100',
-            'TotalAmount' => 'nullable|numeric|min:0',
-            'TransactionDate' => 'nullable|date',
         ];
     }
 
