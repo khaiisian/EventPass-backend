@@ -173,6 +173,20 @@ class TransactionService
         });
     }
 
+    public function ticketHistory()
+    {
+        $id = auth()->user()->UserId;
+        return $this->connection()
+            ->with([
+                'user',
+                'transactionTickets.ticketType',
+            ])
+            ->where('UserId', $id)
+            ->where('DeleteFlag', false)
+            ->get();
+
+    }
+
     public function generateTransactionCode()
     {
         $last = $this->connection()::orderBy('TransactionId', 'desc')->first();

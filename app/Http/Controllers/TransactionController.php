@@ -124,4 +124,14 @@ class TransactionController extends Controller
         }
     }
 
+    public function ticketHistory()
+    {
+        try {
+            $transactions = TransactionResource::collection($this->_transactionService->ticketHistory());
+            return $this->success('success', $transactions, 'Transaction retrieved successfully', 200);
+        } catch (Exception $e) {
+            return $this->fail('fail', null, $e->getMessage(), 500);
+        }
+    }
+
 }
