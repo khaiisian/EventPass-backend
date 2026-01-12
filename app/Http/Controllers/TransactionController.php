@@ -10,6 +10,7 @@ use App\Services\TransactionService;
 use Exception;
 use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TransactionController extends Controller
 {
@@ -21,25 +22,32 @@ class TransactionController extends Controller
     {
         $this->_transactionService = $transactionService;
     }
-
     public function index(Request $request)
     {
         try {
-            $perPage = $request->get('per_page', 10);
+            $paginator = $this->_transactionService->search(
+                $request->only([
+                    'search',
+                    'status',
+                    'payment_type',
+                    'sort_by',
+                    'per_page'
+                ])
+            );
 
-            $paginator = $this->_transactionService->getAll($perPage);
-
-            return TransactionResource::collection($paginator)
-                ->additional([
-                    'status' => true,
-                    'message' => 'Transactions retrieved successfully'
-                ]);
+            return TransactionResource::collection($paginator)->additional([
+                'status' => true,
+                'message' => 'Transactions retrieved successfully'
+            ]);
 
         } catch (Exception $e) {
+            Log::error('Transaction index error', [
+                'error' => $e->getMessage()
+            ]);
+
             return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
-
 
     public function store(TransactionCreateRequest $request)
     {

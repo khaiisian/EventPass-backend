@@ -27,15 +27,14 @@ class OrganizerController extends Controller
         try {
             Log::info('Fetching organizers');
 
-            $perPage = $request->get('per_page', 10);
+            $paginator = $this->_organizerService->search(
+                $request->only(['search', 'per_page'])
+            );
 
-            $paginator = $this->_organizerService->getAll($perPage);
-
-            return OrganizerResource::collection($paginator)
-                ->additional([
-                    'status' => true,
-                    'message' => 'Organizers retrieved successfully'
-                ]);
+            return OrganizerResource::collection($paginator)->additional([
+                'status' => true,
+                'message' => 'Organizers retrieved successfully'
+            ]);
 
         } catch (Exception $e) {
             Log::error('Failed to fetch organizers', [

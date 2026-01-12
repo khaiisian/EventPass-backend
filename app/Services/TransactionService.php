@@ -30,6 +30,68 @@ class TransactionService
             ->paginate($perPage);
     }
 
+    public function search(array $params)
+    {
+        $query = Transaction::query()
+            ->where('DeleteFlag', false)
+            ->with([
+                'user',
+                'transactionTickets.ticketType'
+            ]);
+
+
+        if (array_key_exists('status', $params) && $params['status'] !== 'all') {
+            $status = filter_var($params['status'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if (!is_null($status)) {
+                $query->where('Status', $status);
+            }
+        }
+
+        if (!empty($params['payment_type'])) {
+            $query->where('PaymentType', $params['payment_type']);
+        }
+
+        // Search by transaction code or email
+        if (!empty($params['search'])) {
+            $query->where(function ($q) use ($params) {
+                $q->where('TransactionCode', 'LIKE', '%' . $params['search'] . '%')
+                    ->orWhere('Email', 'LIKE', '%' . $params['search'] . '%');
+            });
+        }
+
+        // Sorting
+        switch ($params['sort_by'] ?? null) {
+            case 'date_asc':
+                $query->orderBy('TransactionDate', 'asc');
+                break;
+
+            case 'date_desc':
+                $query->orderBy('TransactionDate', 'desc');
+                break;
+
+            case 'amount_asc':
+                $query->orderBy('TotalAmount', 'asc');
+                break;
+
+            case 'amount_desc':
+                $query->orderBy('TotalAmount', 'desc');
+                break;
+
+            case 'created_asc':
+                $query->orderBy('CreatedAt', 'asc');
+                break;
+
+            case 'created_desc':
+                $query->orderBy('CreatedAt', 'desc');
+                break;
+
+            default:
+                $query->orderBy('CreatedAt', 'desc');
+        }
+
+        return $query->paginate($params['per_page'] ?? 10);
+    }
+
     public function getById($id)
     {
         return $this->connection()
@@ -91,7 +153,7 @@ class TransactionService
                 ),
                 'UserId' => $user->UserId,
                 'Email' => User::where('UserId', $user->UserId)->value('Email'),
-                'Status' => false,
+                'Status' => true,
                 'TotalAmount' => 0,
                 'PaymentType' => $data['PaymentType'],
                 'TransactionDate' => now(),

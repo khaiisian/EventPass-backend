@@ -25,17 +25,21 @@ class EventController extends Controller
     public function index(Request $request)
     {
         try {
-            Log::info('Fetching events');
+            Log::info('Fetching events', $request->all());
 
-            $perPage = $request->get('per_page', 10);
+            $paginator = $this->_eventService->search(
+                $request->only([
+                    'event_type_id',
+                    'search',
+                    'sort_by',
+                    'per_page'
+                ])
+            );
 
-            $paginator = $this->_eventService->getAll($perPage);
-
-            return EventResource::collection($paginator)
-                ->additional([
-                    'status' => true,
-                    'message' => 'Events retrieved successfully'
-                ]);
+            return EventResource::collection($paginator)->additional([
+                'status' => true,
+                'message' => 'Events retrieved successfully'
+            ]);
 
         } catch (Exception $e) {
             Log::error('Failed to fetch events', [
@@ -45,7 +49,6 @@ class EventController extends Controller
             return $this->fail(false, null, $e->getMessage(), 500);
         }
     }
-
 
     public function store(EventCreateRequest $request)
     {

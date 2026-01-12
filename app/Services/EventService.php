@@ -167,4 +167,46 @@ class EventService
         return $event->save();
     }
 
+    public function search(array $params)
+    {
+        $query = Event::query()
+            ->where('DeleteFlag', false)
+            ->where('IsActive', true)
+            ->with(['eventType', 'venue', 'organizer']);
+
+        if (!empty($params['event_type_id'])) {
+            $query->where('EventTypeId', $params['event_type_id']);
+        }
+
+        if (!empty($params['search'])) {
+            $query->where('EventName', 'LIKE', '%' . $params['search'] . '%');
+        }
+
+        switch ($params['sort_by'] ?? null) {
+            case 'name_asc':
+                $query->orderBy('EventName', 'asc');
+                break;
+
+            case 'name_desc':
+                $query->orderBy('EventName', 'desc');
+                break;
+
+            case 'date_asc':
+                $query->orderBy('StartDate', 'asc');
+                break;
+
+            case 'date_desc':
+                $query->orderBy('StartDate', 'desc');
+                break;
+
+            case 'popular':
+                $query->orderBy('SoldOutTicketQuantity', 'desc');
+                break;
+
+            default:
+                $query->orderBy('CreatedAt', 'desc');
+        }
+
+        return $query->paginate($params['per_page'] ?? 10);
+    }
 }

@@ -27,18 +27,24 @@ class UserController extends Controller
     public function index(Request $request)
     {
         try {
-            $perPage = $request->get('per_page', 10);
+            $paginator = $this->_userService->search(
+                $request->only([
+                    'search',
+                    'role',
+                    'sort_by',
+                    'per_page'
+                ])
+            );
 
-            $paginator = $this->_userService->getUsers($perPage);
-
-            return UserResource::collection($paginator)
-                ->additional([
-                    'status' => true,
-                    'message' => 'Users retrieved successfully'
-                ]);
+            return UserResource::collection($paginator)->additional([
+                'status' => true,
+                'message' => 'Users retrieved successfully'
+            ]);
 
         } catch (Exception $e) {
-            Log::error('User index error: ' . $e->getMessage());
+            Log::error('User index error', [
+                'error' => $e->getMessage()
+            ]);
 
             return $this->fail(false, null, 'Failed to retrieve users', 500);
         }

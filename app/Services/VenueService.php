@@ -23,6 +23,43 @@ class VenueService
             ->paginate($perPage);
     }
 
+    public function search(array $params)
+    {
+        $query = Venue::query()
+            ->where('DeleteFlag', false)
+            ->with('venueType');
+
+        if (!empty($params['venue_type_id'])) {
+            $query->where('VenueTypeId', $params['venue_type_id']);
+        }
+
+        if (!empty($params['search'])) {
+            $query->where('VenueName', 'LIKE', '%' . $params['search'] . '%');
+        }
+
+        switch ($params['sort_by'] ?? null) {
+            case 'name_asc':
+                $query->orderBy('VenueName', 'asc');
+                break;
+
+            case 'name_desc':
+                $query->orderBy('VenueName', 'desc');
+                break;
+
+            case 'capacity_asc':
+                $query->orderBy('Capacity', 'asc');
+                break;
+
+            case 'capacity_desc':
+                $query->orderBy('Capacity', 'desc');
+                break;
+
+            default:
+                $query->orderBy('CreatedAt', 'desc');
+        }
+
+        return $query->paginate($params['per_page'] ?? 10);
+    }
 
     public function getById($id)
     {

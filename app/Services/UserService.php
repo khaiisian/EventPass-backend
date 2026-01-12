@@ -17,6 +17,49 @@ class UserService
         return new User();
     }
 
+    public function search(array $params)
+    {
+        $query = User::query()
+            ->where('DeleteFlag', false);
+
+        // Filter by role
+        if (!empty($params['role'])) {
+            $query->where('Role', $params['role']);
+        }
+
+        // Search by name or email
+        if (!empty($params['search'])) {
+            $query->where(function ($q) use ($params) {
+                $q->where('UserName', 'LIKE', '%' . $params['search'] . '%')
+                    ->orWhere('Email', 'LIKE', '%' . $params['search'] . '%');
+            });
+        }
+
+        // Sorting
+        switch ($params['sort_by'] ?? null) {
+            case 'name_asc':
+                $query->orderBy('UserName', 'asc');
+                break;
+
+            case 'name_desc':
+                $query->orderBy('UserName', 'desc');
+                break;
+
+            case 'created_asc':
+                $query->orderBy('CreatedAt', 'asc');
+                break;
+
+            case 'created_desc':
+                $query->orderBy('CreatedAt', 'desc');
+                break;
+
+            default:
+                $query->orderBy('CreatedAt', 'desc');
+        }
+
+        return $query->paginate($params['per_page'] ?? 10);
+    }
+
     public function getUsers($perPage = 10)
     {
         return $this->connection()

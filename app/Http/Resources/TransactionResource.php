@@ -31,14 +31,21 @@ class TransactionResource extends JsonResource
                     return [
                         'TransactionTicketId' => $ticket->TransactionTicketId,
                         'TransactionTicketCode' => $ticket->TransactionTicketCode,
-                        'TicketTypeId' => $ticket->TicketTypeId,
                         'Price' => $ticket->Price,
                         'QrImage' => $ticket->QrImage
                             ? asset('storage/' . $ticket->QrImage)
                             : null,
+
+                        // TicketType
+                        'TicketType' => $ticket->ticketType ? [
+                            'TicketTypeId' => $ticket->ticketType->TicketTypeId,
+                            'TicketTypeName' => $ticket->ticketType->TicketTypeName,
+                            'Description' => $ticket->ticketType->Description,
+                        ] : null,
                     ];
                 });
             }),
+
         ];
     }
 }

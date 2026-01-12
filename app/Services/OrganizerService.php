@@ -15,12 +15,21 @@ class OrganizerService
         return new Organizer;
     }
 
-    public function getAll($perPage = 10)
+    public function search(array $params)
     {
-        return $this->connection()
-            ->where('DeleteFlag', false)
-            ->paginate($perPage);
+        $query = Organizer::query()
+            ->where('DeleteFlag', false);
+
+        if (!empty($params['search'])) {
+            $query->where(function ($q) use ($params) {
+                $q->where('OrganizerName', 'LIKE', '%' . $params['search'] . '%')
+                    ->orWhere('Email', 'LIKE', '%' . $params['search'] . '%');
+            });
+        }
+
+        return $query->paginate($params['per_page'] ?? 10);
     }
+
 
     public function getById($id)
     {

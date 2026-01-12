@@ -18,7 +18,7 @@ class User extends Authenticatable implements JWTSubject
         'PhNumber',
         'Password',
         'ProfileImg',
-        'Role',          // <-- Use the exact column name from migration
+        'Role',         
         'CreatedBy',
         'CreatedAt',
         'ModifiedBy',

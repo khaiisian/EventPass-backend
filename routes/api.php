@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
     AuthController,
@@ -101,4 +102,6 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/{id}', [TransactionController::class, 'update']);
         Route::delete('/{id}', [TransactionController::class, 'destroy']);
     });
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 });

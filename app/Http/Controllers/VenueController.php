@@ -25,20 +25,26 @@ class VenueController extends Controller
     public function index(Request $request)
     {
         try {
-            Log::info('Fetching venues');
+            Log::info('Fetching venues', $request->all());
 
-            $perPage = $request->get('per_page', 10);
+            $paginator = $this->venueService->search(
+                $request->only([
+                    'venue_type_id',
+                    'search',
+                    'sort_by',
+                    'per_page'
+                ])
+            );
 
-            $paginator = $this->venueService->getAll($perPage);
-
-            return VenueResource::collection($paginator)
-                ->additional([
-                    'status' => true,
-                    'message' => 'Venues retrieved successfully'
-                ]);
+            return VenueResource::collection($paginator)->additional([
+                'status' => true,
+                'message' => 'Venues retrieved successfully'
+            ]);
 
         } catch (Exception $e) {
-            Log::error('Venue index error: ' . $e->getMessage());
+            Log::error('Venue index error', [
+                'error' => $e->getMessage()
+            ]);
 
             return $this->fail(false, null, 'Failed to retrieve venues', 500);
         }
