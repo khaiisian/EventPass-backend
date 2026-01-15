@@ -14,7 +14,7 @@ class DashboardService
     public function getMetrics()
     {
         $dailyRevenue = Transaction::where('DeleteFlag', false)
-            ->where('Status', true) // only successful payments
+            ->where('Status', true)
             ->select(
                 DB::raw('DATE(TransactionDate) as date'),
                 DB::raw('SUM(TotalAmount) as revenue')
@@ -26,7 +26,7 @@ class DashboardService
         return [
             'total_events' => Event::where('DeleteFlag', false)->count(),
             'total_active_users' => User::where('DeleteFlag', false)
-                ->where('Role', 'user')
+                ->where('Role', 'CUSTOMER')
                 ->count(),
             'total_organizers' => organizer::where('DeleteFlag', false)->count(),
             'total_venues' => Venue::where('DeleteFlag', false)->count(),

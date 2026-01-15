@@ -39,7 +39,7 @@ class EventService
         return Event::with('eventType', 'venue', 'organizer')
             ->orderByDesc('SoldOutTicketQuantity')
             ->where('DeleteFlag', false)
-            ->where('EventStatus', 2)
+            ->where('EventStatus', 1)
             ->take(value: 4)
             ->get();
     }

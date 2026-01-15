@@ -11,7 +11,8 @@ use App\Models\Event;
 use Illuminate\Support\Facades\DB;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Storage;
-use Str;
+use Illuminate\Support\Str;
+
 
 class TransactionService
 {
@@ -97,7 +98,7 @@ class TransactionService
         return $this->connection()
             ->with([
                 'user',
-                'transactionTickets.ticketType', // optional but usually needed
+                'transactionTickets.ticketType.event',
             ])
             ->where('TransactionId', $id)
             ->where('DeleteFlag', false)
@@ -144,6 +145,7 @@ class TransactionService
 
             $user = auth()->user();
 
+            // Create the main transaction
             $transactionData = [
                 'TransactionCode' => $this->generateCode(
                     'TRS',
@@ -191,13 +193,10 @@ class TransactionService
 
                 for ($i = 0; $i < $ticket['Quantity']; $i++) {
 
-                    $code = $this->generateCode(
-                        'TTK',
-                        'TransactionTicketId',
-                        'TransactionTicketCode',
-                        TransactionTicket::class
-                    );
+                    // Generate ULID-based ticket code
+                    $code = 'T' . Str::ulid();
 
+                    // Create QR code (PNG) from the ticket code
                     $qrImage = QrCode::format('png')
                         ->size(300)
                         ->generate($code);
@@ -222,7 +221,7 @@ class TransactionService
                 }
             }
 
-            // Update total amount
+            // Update total amount in transaction
             $transaction->update([
                 'TotalAmount' => $totalAmount
             ]);
@@ -234,6 +233,7 @@ class TransactionService
             return $transaction;
         });
     }
+
 
     public function ticketHistory()
     {

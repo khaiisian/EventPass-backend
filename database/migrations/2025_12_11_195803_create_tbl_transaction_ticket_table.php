@@ -5,39 +5,34 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('Tbl_TransactionTicket', function (Blueprint $table) {
-            $table->increments('TransactionTicketId');          // Primary key
-            $table->string('TransactionTicketCode')->unique();  // Unique ticket code
-            $table->unsignedInteger('TicketTypeId');           // Foreign key to Tbl_TicketType
-            $table->unsignedInteger('TransactionId');          // Foreign key to Tbl_Transaction
-            $table->string('QrImage')->nullable();             // Path or URL of QR image
-            $table->decimal('Price', 10, 2)->default(0);       // Ticket price
+            $table->increments('TransactionTicketId');
+            $table->string('TransactionTicketCode')->unique();
+            $table->unsignedInteger('TicketTypeId')->nullable();
+            $table->unsignedInteger('TransactionId')->nullable();
+            $table->string('QrImage')->nullable();
+            $table->decimal('Price', 10, 2)->default(0);
+            $table->boolean('Status')->default(false);
             $table->string('CreatedBy')->nullable();
             $table->timestamp('CreatedAt')->useCurrent();
             $table->string('ModifiedBy')->nullable();
             $table->timestamp('ModifiedAt')->nullable()->useCurrentOnUpdate();
-            $table->boolean('DeleteFlag')->default(false);     // Soft delete flag
+            $table->boolean('DeleteFlag')->default(false);
 
-            // Foreign key constraints
-            $table->foreign('TicketTypeId')->references('TicketTypeId')->on('Tbl_TicketType')
-                ->onUpdate('cascade');
-            // ->onDelete('restrict');  // Prevent deletion if tickets exist
+            $table->foreign('TicketTypeId')
+                ->references('TicketTypeId')->on('Tbl_TicketType')
+                ->onUpdate('cascade')
+                ->onDelete('set null');
 
-            $table->foreign('TransactionId')->references('TransactionId')->on('Tbl_Transaction')
-                ->onUpdate('cascade');
-            // ->onDelete('restrict');  // Prevent deletion if transaction exists
+            $table->foreign('TransactionId')
+                ->references('TransactionId')->on('Tbl_Transaction')
+                ->onUpdate('cascade')
+                ->onDelete('set null');
         });
     }
 
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('Tbl_TransactionTicket');

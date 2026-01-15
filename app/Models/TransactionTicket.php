@@ -16,6 +16,7 @@ class TransactionTicket extends Model
         'TransactionId',
         'QrImage',
         'Price',
+        'Status',
         'CreatedBy',
         'CreatedAt',
         'ModifiedBy',
@@ -26,6 +27,7 @@ class TransactionTicket extends Model
     protected $casts = [
         'Price' => 'decimal:2',
         'DeleteFlag' => 'boolean',
+        'Status' => 'boolean',
         'CreatedAt' => 'datetime',
         'ModifiedAt' => 'datetime',
     ];

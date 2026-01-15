@@ -26,6 +26,28 @@ class TransactionResource extends JsonResource
             'DeleteFlag' => (bool) $this->DeleteFlag,
 
             'User' => $this->whenLoaded('user'),
+
+            'Event' => $this->whenLoaded('transactionTickets', function () {
+                return $this->transactionTickets
+                    ->map(fn($ticket) => $ticket->ticketType?->event)
+                    ->filter()
+                    ->unique('EventId')
+                    ->values()
+                    ->map(function ($event) {
+                        return [
+                            'EventId' => $event->EventId,
+                            'EventCode' => $event->EventCode,
+                            'EventName' => $event->EventName,
+                            'StartDate' => $event->StartDate?->toDateTimeString(),
+                            'EndDate' => $event->EndDate?->toDateTimeString(),
+                            'EventStatus' => $event->EventStatus,
+                            'EventImage' => $event->EventImage
+                                ? asset('storage/' . $event->EventImage)
+                                : null,
+                        ];
+                    });
+            }),
+
             'TransactionTickets' => $this->whenLoaded('transactionTickets', function () {
                 return $this->transactionTickets->map(function ($ticket) {
                     return [
@@ -35,8 +57,7 @@ class TransactionResource extends JsonResource
                         'QrImage' => $ticket->QrImage
                             ? asset('storage/' . $ticket->QrImage)
                             : null,
-
-                        // TicketType
+                        'TicketStatus' => (bool) $ticket->Status,
                         'TicketType' => $ticket->ticketType ? [
                             'TicketTypeId' => $ticket->ticketType->TicketTypeId,
                             'TicketTypeName' => $ticket->ticketType->TicketTypeName,
@@ -45,7 +66,6 @@ class TransactionResource extends JsonResource
                     ];
                 });
             }),
-
         ];
     }
 }

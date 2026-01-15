@@ -11,27 +11,27 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('Tbl_Transaction', function (Blueprint $table) {
-            $table->increments('TransactionId');           // Primary key
-            $table->string('TransactionCode')->unique();   // Unique transaction code
-            $table->unsignedInteger('UserId');            // Foreign key to Tbl_User
-            $table->string('Email');                       // User email for record
-            $table->boolean('Status')->default(false);     // Transaction status (paid/unpaid)
-            $table->string('PaymentType')->nullable();     // Payment method
-            $table->decimal('TotalAmount', 10, 2)->default(0); // Total amount
+            $table->increments('TransactionId');
+            $table->string('TransactionCode')->unique();
+            $table->unsignedInteger('UserId')->nullable();
+            $table->string('Email');
+            $table->boolean('Status')->default(false);
+            $table->string('PaymentType')->nullable();
+            $table->decimal('TotalAmount', 10, 2)->default(0);
             $table->timestamp('TransactionDate')->useCurrent();
             $table->string('CreatedBy')->nullable();
             $table->timestamp('CreatedAt')->useCurrent();
             $table->string('ModifiedBy')->nullable();
             $table->timestamp('ModifiedAt')->nullable()->useCurrentOnUpdate();
-            $table->boolean('DeleteFlag')->default(false); // Soft delete flag
+            $table->boolean('DeleteFlag')->default(false);
 
             // Foreign key constraint
-            $table->foreign('UserId')->references('UserId')->on('tbl_user')
-                ->onUpdate('cascade');
-            // ->onDelete('restrict'); // Prevent deletion if user has transactions
+            $table->foreign('UserId')
+                ->references('UserId')->on('tbl_user')
+                ->onUpdate('cascade')
+                ->onDelete('set null');
         });
     }
-
 
     /**
      * Reverse the migrations.

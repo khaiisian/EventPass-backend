@@ -11,17 +11,17 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('Tbl_EventOrganizer', function (Blueprint $table) {
-            $table->increments('OrganizerId');           // Primary key
-            $table->string('OrganizerCode')->unique()->nullable(); // Unique code for organizer
-            $table->string('OrganizerName');            // Organizer name
-            $table->string('Email')->unique()->nullable();       // Optional unique email
-            $table->string('PhNumber')->nullable();     // Optional phone number
-            $table->string('Address')->nullable();      // Optional address
+            $table->increments('OrganizerId');
+            $table->string('OrganizerCode')->unique()->nullable();
+            $table->string('OrganizerName');
+            $table->string('Email')->unique()->nullable();
+            $table->string('PhNumber')->nullable();
+            $table->string('Address')->nullable();
             $table->string('CreatedBy')->nullable();
             $table->timestamp('CreatedAt')->useCurrent();
             $table->string('ModifiedBy')->nullable();
             $table->timestamp('ModifiedAt')->nullable()->useCurrentOnUpdate();
-            $table->boolean('DeleteFlag')->default(false); // Soft delete
+            $table->boolean('DeleteFlag')->default(false);
         });
 
     }

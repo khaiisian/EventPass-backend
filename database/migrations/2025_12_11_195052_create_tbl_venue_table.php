@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('Tbl_Venue', function (Blueprint $table) {
             $table->increments('VenueId');
             $table->string('VenueCode')->unique();
-            $table->unsignedInteger('VenueTypeId');
+            $table->unsignedInteger('VenueTypeId')->nullable();
             $table->string('VenueName');
             $table->string('Description')->nullable();
             $table->string('Address')->nullable();
@@ -25,12 +25,12 @@ return new class extends Migration {
             $table->timestamp('ModifiedAt')->nullable()->useCurrentOnUpdate();
             $table->boolean('DeleteFlag')->default(false);
 
-            $table->foreign('VenueTypeId')->references('VenueTypeId')->on('Tbl_VenueType')
-                ->onUpdate('cascade');
-            // ->onDelete('restrict');  // Prevent deletion if venue type exists
+            $table->foreign('VenueTypeId')
+                ->references('VenueTypeId')->on('Tbl_VenueType')
+                ->onUpdate('cascade')
+                ->onDelete('set null');
         });
     }
-
 
     /**
      * Reverse the migrations.

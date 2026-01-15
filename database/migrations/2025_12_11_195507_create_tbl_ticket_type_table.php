@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('Tbl_TicketType', function (Blueprint $table) {
             $table->increments('TicketTypeId');
             $table->string('TicketTypeCode')->unique();
-            $table->unsignedInteger('EventId');
+            $table->unsignedInteger('EventId')->nullable(); // Nullable for set null
             $table->string('TicketTypeName');
             $table->decimal('Price', 10, 2)->default(0);
             $table->integer('TotalQuantity')->default(0);
@@ -25,12 +25,12 @@ return new class extends Migration {
             $table->boolean('DeleteFlag')->default(false);
 
             // Foreign key constraint
-            $table->foreign('EventId')->references('EventId')->on('Tbl_Event')
-                ->onUpdate('cascade');
-            // ->onDelete('restrict');  // Prevent deletion if tickets exist
+            $table->foreign('EventId')
+                ->references('EventId')->on('Tbl_Event')
+                ->onUpdate('cascade')
+                ->onDelete('set null');
         });
     }
-
 
     /**
      * Reverse the migrations.
